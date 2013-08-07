@@ -2,71 +2,93 @@ $LOAD_PATH.unshift(File.expand_path("../lib", File.dirname(__FILE__)))
 require 'wires'
 
 require 'wires/test'
-Wires.test_format
+# Wires.test_format
 
 
-module Wires
+class SomeEvent      < Wires::Event; end
+class SomeOtherEvent < SomeEvent;    end
+
+
+describe Wires::Test::Helper do
   
-  # module TestModule
-    
-  #   def before_setup
-  #     @received_wires_events = []
-  #     on :event do |e|
-  #       @received_wires_events << e
-  #     end
-      
-  #     Hub.run
-  #     super
-  #   end
-    
-  #   def after_teardown
-  #     super
-  #     Hub.kill
-      
-  #     @received_wires_events.clear
-  #   end
-    
-  #   def assert_fired event
-  #     e = Event.new_from event
-  #     assert (@received_wires_events.include? e),
-  #       "Expected #{event.inspect} event to have been fired."
-  #   end
-    
-  # end
+  include Wires::Test::Helper
   
-  # class Test < Minitest::Test;  include TestModule;  end
-  # class Spec < Minitest::Spec;  include TestModule;  end
+  it 'tracks all events fired in each test' do
+    @received_wires_events.must_equal []
+    
+    fire :event
+    @received_wires_events.size.must_equal 1
+    event, chan = @received_wires_events[0]
+    event.must_be_instance_of Wires::Event
+    chan .must_be_instance_of Wires::Channel
+    
+    20.times do fire :event end
+    @received_wires_events.size.must_equal 21
+    
+    fire :some; fire :some
+    @received_wires_events.size.must_equal 23
+    @received_wires_events.select{|x| x[0].is_a? SomeEvent}
+                          .size.must_equal 2
+    
+    fire :event, 'some_channel'
+    fire :event, 'some_channel'
+    @received_wires_events.size.must_equal 25
+    @received_wires_events.select{|x| x[1]==Wires::Channel.new('some_channel')}
+                          .size.must_equal 2
+  end
   
-end
-
-
-
-class SomeEvent < Wires::Event; end
-
-def foo &block
-  Thread.new do block.call end
-end
-
-describe nil do
-  it "" do
-    p self
-    # 1.must_equal 1
-    on SomeEvent do
-      # p Minitest::Spec.current
-    #   p self
-    #   1.must_equal 1
+  it 'will not remember events from other tests' do
+    @received_wires_events.must_equal []
+    fire :event
+    @received_wires_events.size.must_equal 1
+  end
+  
+  it 'will remember events if the Hub is killed/run inside the test' do
+    @received_wires_events.must_equal []
+    fire :event
+    @received_wires_events.size.must_equal 1
+    
+    Wires::Hub.kill; Wires::Hub.run
+    @received_wires_events.size.must_equal 1
+  end
+  
+  describe '00 #clear_fired' do
+    it "clears the list of stored event/channel pairs" do
+      @received_wires_events.must_equal []      
+      fire :event
+      @received_wires_events.size.must_equal 1
+      clear_fired
+      @received_wires_events.size.must_equal 0
+      20.times { fire :event }
+      @received_wires_events.size.must_equal 20
+      clear_fired
+      @received_wires_events.size.must_equal 0
     end
-    
-    Thread.new do
-      p Minitest::Spec.current
+  end
+  
+  describe '01 #fired?' do
+    it "can be used to match against the stored list" do
+      clear_fired; fire :event
+      assert fired?     :event
+      assert fired?     :event, 'channel'
+      assert fired?     :event, 'channel2'
+      
+      clear_fired; fire :event, 'channel'
+      assert fired?     :event
+      assert fired?     :event, 'channel'
+      refute fired?     :event, 'channel2'
+      
+      clear_fired; fire :some
+      assert fired?     :event
+      assert fired?     :some
+      refute fired?     :some_other
+      assert fired?     Wires::Event
+      assert fired?     SomeEvent
+      refute fired?     SomeOtherEvent
+      assert fired?     Wires::Event.new
+      assert fired?     SomeEvent.new
+      refute fired?     SomeOtherEvent.new
     end
-    # pr.call
-    
-    # p Minitest::Spec.current
-    
-    Wires::Hub.run
-    fire SomeEvent
-    Wires::Hub.kill
   end
 end
 
