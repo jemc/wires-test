@@ -88,6 +88,53 @@ describe Wires::Test::Helper do
       assert fired?     Wires::Event.new
       assert fired?     SomeEvent.new
       refute fired?     SomeOtherEvent.new
+      
+      clear_fired; fire :event, 'channel'
+      assert fired?     :event, /han/
+      refute fired?     :event, /^han/
+      assert fired?     :event, /(ch|fl)an+e_*l$/
+      refute fired?     :event, /(pl|fl)an+e_*l$/
+      
+    end
+    
+    it "doesn't" do
+      assert nil
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      assert 1
+    end
+    it "does" do
+      asserfeit 1
     end
   end
 end

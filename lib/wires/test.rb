@@ -1,14 +1,16 @@
 gem 'minitest', '~> 4.3'
 require 'minitest/autorun'
 
+require 'wires/test-reporter'
+
 
 module Wires
   
   def self.test_format
-    require 'turn'
-    Turn.config.format  = :outline
-    Turn.config.natural = true
-    Turn.config.trace   = 5
+    # require 'turn'
+    # Turn.config.format  = :outline
+    # Turn.config.natural = true
+    # Turn.config.trace   = 5
   end
   
   module Test
