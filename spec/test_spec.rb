@@ -52,6 +52,8 @@ describe Wires::Test::Helper do
     @received_wires_events.size.must_equal 1
   end
   
+  it "jksfnfks"
+  
   describe '00 #clear_fired' do
     it "clears the list of stored event/channel pairs" do
       @received_wires_events.must_equal []      
@@ -97,7 +99,11 @@ describe Wires::Test::Helper do
       
     end
     
-    it "doesn't" do
+    def test_it_all_now
+      refute 55
+    end
+    
+    it "doesn't involve something else" do
       assert nil
     end
     it "does" do
