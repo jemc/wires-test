@@ -2,7 +2,7 @@ $LOAD_PATH.unshift(File.expand_path("../lib", File.dirname(__FILE__)))
 require 'wires'
 
 require 'wires/test'
-# Wires.test_format
+Wires.test_format
 
 
 class SomeEvent      < Wires::Event; end
@@ -104,7 +104,7 @@ describe Wires::Test::Helper do
     end
     
     it "doesn't involve something else" do
-      assert nil
+      foo
     end
     it "does" do
       assert 1
@@ -147,17 +147,24 @@ describe Wires::Test::Helper do
       sleep 0.03
     end
     it "does" do
-      assert 1
       sleep 0.03
+      puts "bsldhsadj"
     end
-    it "does" do
-      asserfeit 1
+    it "can't" do
+      bar
       sleep 0.03
     end
   end
 end
 
 
+def foo
+  assert nil
+end
+
+def bar
+  asserfeit 1
+end
 
 
 
