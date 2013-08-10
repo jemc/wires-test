@@ -108,39 +108,51 @@ describe Wires::Test::Helper do
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       assert 1
+      sleep 0.03
     end
     it "does" do
       asserfeit 1
+      sleep 0.03
     end
   end
 end
