@@ -96,6 +96,12 @@ describe Wires::Test::Helper do
       refute fired?     :event, /(pl|fl)an+e_*l$/
     end
     
+    it "can clear the list after checking for a match" do
+      fire :some, 'chan'
+      assert fired? :some, 'chan', clear:true
+      refute fired? :some, 'chan'
+    end
+    
     it "can test that only one event was matched"\
        " and no other events were fired" do
       clear_fired
@@ -117,6 +123,7 @@ describe Wires::Test::Helper do
       fire :some_other, 'chan'
       refute fired? :some, 'chan', exclusive:true
     end
+    
   end
 end
 

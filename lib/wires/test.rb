@@ -31,13 +31,13 @@ module Wires
           (channel_exact ? (key_chan  === c) : (key_chan  =~ c))
         }
         
+        clear_fired if clear
+        
         return false if results.empty?
         return false if exclusive and (@received_wires_events.size != 1)
         return false if exclusive and (results.size != 1)
         
         results.each(&block) # Execute passed block for each match
-        
-        clear_fired if clear
         
         true
       end
