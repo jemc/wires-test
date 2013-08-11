@@ -21,21 +21,21 @@ module Wires
         @received_wires_events.clear
       end
       
-      def fired?(event, channel='*', clear:false, exclusive:false, 
-                 id_exact:false, channel_exact:false, &block)
+      def fired?(event,channel='*', clear:false, exclusive:false, plurality:nil,
+                 exact_event:false, exact_channel:false, &block)
         key_event = Event.new_from event
         key_chan  = Channel.new channel
         
         results = @received_wires_events.select { |e,c|
-          (id_exact      ? (key_event === e) : (key_event =~ e)) and
-          (channel_exact ? (key_chan  === c) : (key_chan  =~ c))
+          (exact_event   ? (key_event.class == e.class) : (key_event =~ e)) and
+          (exact_channel ? (key_chan  === c)            : (key_chan  =~ c))
         }
         
         clear_fired if clear
         
         return false if results.empty?
-        return false if exclusive and (@received_wires_events.size != 1)
-        return false if exclusive and (results.size != 1)
+        return false if exclusive and (@received_wires_events != results)
+        return false if plurality  and (results.size != plurality)
         
         results.each(&block) # Execute passed block for each match
         

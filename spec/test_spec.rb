@@ -52,7 +52,7 @@ describe Wires::Test::Helper do
     @received_wires_events.size.must_equal 1
   end
   
-  describe '00 #clear_fired' do
+  describe '#clear_fired' do
     it "clears the list of stored event/channel pairs" do
       @received_wires_events.must_equal []      
       fire :event
@@ -66,9 +66,9 @@ describe Wires::Test::Helper do
     end
   end
   
-  describe '01 #fired?' do
+  describe '#fired?' do
     it "can be used to match against the stored list" do
-      clear_fired; fire :event
+      fire :event
       assert fired?     :event
       assert fired?     :event, 'channel'
       assert fired?     :event, 'channel2'
@@ -77,41 +77,64 @@ describe Wires::Test::Helper do
       assert fired?     :event
       assert fired?     :event, 'channel'
       refute fired?     :event, 'channel2'
-      
-      clear_fired; fire :some
-      assert fired?     :event
-      assert fired?     :some
-      refute fired?     :some_other
-      assert fired?     Wires::Event
-      assert fired?     SomeEvent
-      refute fired?     SomeOtherEvent
-      assert fired?     Wires::Event.new
-      assert fired?     SomeEvent.new
-      refute fired?     SomeOtherEvent.new
-      
-      clear_fired; fire :event, 'channel'
-      assert fired?     :event, /han/
-      refute fired?     :event, /^han/
-      assert fired?     :event, /(ch|fl)an+e_*l$/
-      refute fired?     :event, /(pl|fl)an+e_*l$/
+    end
+    
+    it "matches event subclasses by default" do
+      fire :some
+      assert fired?  :event
+      assert fired?  :some
+      refute fired?  :some_other
+      assert fired?  Wires::Event
+      assert fired?  SomeEvent
+      refute fired?  SomeOtherEvent
+      assert fired?  Wires::Event.new
+      assert fired?  SomeEvent.new
+      refute fired?  SomeOtherEvent.new
+    end
+    
+    it "can match an exact event class instead of including subclasses" do
+      fire :some
+      refute fired?  :event,             exact_event:true
+      assert fired?  :some,              exact_event:true
+      refute fired?  :some_other,        exact_event:true
+      refute fired?  Wires::Event,       exact_event:true
+      assert fired?  SomeEvent,          exact_event:true
+      refute fired?  SomeOtherEvent,     exact_event:true
+      refute fired?  Wires::Event.new,   exact_event:true
+      assert fired?  SomeEvent.new,      exact_event:true
+      refute fired?  SomeOtherEvent.new, exact_event:true
+    end
+    
+    it "matches all channels for which the key channel is relevant" do
+      fire           :event, 'channel'
+      assert fired?  :event, /han/
+      refute fired?  :event, /^han/
+      assert fired?  :event, /(ch|fl)an+e_*l$/
+      refute fired?  :event, /(pl|fl)an+e_*l$/
+    end
+    
+    it "can match an exact channel instead of by relevance" do
+      fire           :event, 'channel'
+      assert fired?  :event, /han/
+      refute fired?  :event, /^han/
+      assert fired?  :event, /(ch|fl)an+e_*l$/
+      refute fired?  :event, /(pl|fl)an+e_*l$/
     end
     
     it "can clear the list after checking for a match" do
       fire :some, 'chan'
-      assert fired? :some, 'chan', clear:true
-      refute fired? :some, 'chan'
+      assert fired?  :some, 'chan', clear:true
+      refute fired?  :some, 'chan'
     end
     
-    it "can test that only one event was matched"\
-       " and no other events were fired" do
-      clear_fired
+    it "can test that no non-matching events were fired" do
       fire :some, 'chan'
       assert fired? :some, 'chan', exclusive:true
       
       clear_fired
       fire :some, 'chan'
       fire :some, 'chan'
-      refute fired? :some, 'chan', exclusive:true
+      assert fired? :some, 'chan', exclusive:true
       
       clear_fired
       fire :some, 'chan'
@@ -119,9 +142,25 @@ describe Wires::Test::Helper do
       refute fired? :some, 'chan', exclusive:true
       
       clear_fired
+      fire :event, 'chan'
       fire :some, 'chan'
-      fire :some_other, 'chan'
       refute fired? :some, 'chan', exclusive:true
+    end
+    
+    it "can match event parameters by array notation" do
+      fire          [:some, 11, 22.2, :symbol, kwarg1:'one', kwarg2:2]
+      assert fired? [:some, 11]
+      assert fired? [:some, 11, 22.2]
+      assert fired? [:some, 11, 22.2, :symbol]
+      
+      refute fired? [:some, 22.2]
+      refute fired? [:some, :symbol]
+      
+      assert fired? [:some, kwarg1:'one']
+      assert fired? [:some, kwarg1:'one', kwarg2:2]
+      assert fired? [:some, kwarg2:2]
+      
+      refute fired? [:some, kwarg3:'three']
     end
     
   end
