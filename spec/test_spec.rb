@@ -183,7 +183,15 @@ describe Wires::Test::Helper do
       refute fired? [:some, kwarg3:'three']
     end
     
-    it "can execute a given block on all matching events"
+    it "can execute a given block on all matching events" do
+      fire [:some, 10, 55, 33, 88], 'chan'
+      count = 0
+      fired? :some do |e,c|
+        count += 1
+        e.args.each {|i| assert i>=10}
+      end
+      refute count.zero?
+    end
     
   end
 end
