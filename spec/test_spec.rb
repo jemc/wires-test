@@ -52,7 +52,7 @@ describe Wires::Test::Helper do
     @received_wires_events.size.must_equal 1
   end
   
-  describe '#clear_fired' do
+  describe '00 #clear_fired' do
     it "clears the list of stored event/channel pairs" do
       @received_wires_events.must_equal []      
       fire :event
@@ -66,7 +66,7 @@ describe Wires::Test::Helper do
     end
   end
   
-  describe '#fired?' do
+  describe '01 #fired?' do
     it "can be used to match against the stored list" do
       fire :event
       assert fired?     :event
@@ -192,7 +192,34 @@ describe Wires::Test::Helper do
       end
       refute count.zero?
     end
-    
+  end
+  
+  describe '02 #assert_fired' do
+    it "passes all args (including &block) to #fired? and asserts the result" do
+      fire [:some, 10, 55, 33, 88], 'chan'
+      count = 0
+      assert_fired :some, /^ch.n$/, exclusive:true do |e,c|
+        count += 1
+        e.args.each {|i| assert i>=10}
+      end
+      refute count.zero?
+    end
+  end
+  
+  describe '03 #refute_fired' do
+    it "passes all args (including &block) to #fired? and refutes the result" do
+      fire [:some, 10, 55, 33, 88], 'chan'
+      count = 0
+      refute_fired :some_other, /^ch.n$/, clear:true do |e,c|
+        count += 1
+        e.args.each {|i| assert i>=10}
+      end
+      refute_fired :some, /^ch.n$/ do |e,c|
+        count += 1
+        e.args.each {|i| assert i>=10}
+      end
+      assert count.zero?
+    end
   end
 end
 
