@@ -2,15 +2,10 @@ gem 'minitest', '~> 4.3'
 require 'minitest/autorun'
 
 
-
-
 module Wires
   
-  def self.test_format
-    require 'wires/test-reporter'
-  end
-  
   module Test
+    
     module Helper
     
       def before_setup

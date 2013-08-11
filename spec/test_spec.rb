@@ -2,7 +2,7 @@ $LOAD_PATH.unshift(File.expand_path("../lib", File.dirname(__FILE__)))
 require 'wires'
 
 require 'wires/test'
-Wires.test_format
+require 'wires/test-reporter'
 
 
 class SomeEvent      < Wires::Event; end
@@ -52,8 +52,6 @@ describe Wires::Test::Helper do
     @received_wires_events.size.must_equal 1
   end
   
-  it "jksfnfks"
-  
   describe '00 #clear_fired' do
     it "clears the list of stored event/channel pairs" do
       @received_wires_events.must_equal []      
@@ -99,95 +97,8 @@ describe Wires::Test::Helper do
       
     end
     
-    def test_it_all_now
-      refute 55
-    end
     
-    it "doesn't involve something else" do
-      foo
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      assert 1
-      sleep 0.03
-    end
-    it "does" do
-      sleep 0.03
-      puts "bsldhsadj"
-    end
-    it "can't" do
-      bar
-      sleep 0.03
-    end
+    
   end
 end
 
-
-def foo
-  assert nil
-end
-
-def bar
-  asserfeit 1
-end
-
-
-
-
-
-# class SomeEvent < Wires::Event; end
-
-# class MyTest < Wires::Test
-  
-#   def test_something
-#     p @received_wires_events
-#     puts self.class.superclass
-#     fire SomeEvent
-#     p @received_wires_events
-    
-#     p @received_wires_events.object_id
-#     # assert_fired :some
-#   end
-# end
-
-# class MySpec < Wires::Spec
-#   it "nil" do
-#     puts @received_wires_events
-#     puts self.class.superclass
-#   end
-# end
