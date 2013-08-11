@@ -18,7 +18,7 @@ module Wires
       def after_teardown
         super
         Hub.kill
-        @received_wires_events.clear
+        clear_fired
       end
       
       def fired?(event,channel='*', clear:false, exclusive:false, plurality:nil,

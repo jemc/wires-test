@@ -147,8 +147,21 @@ describe Wires::Test::Helper do
       refute fired? :some, 'chan', exclusive:true
     end
     
+    it "can test the plurality of matching events" do
+      fire :some, 'chan'
+      assert fired? :some, 'chan', plurality:1
+      
+      clear_fired
+      fire :some, 'chan'
+      fire :some, 'chan'
+      assert fired? :some, 'chan', plurality:2
+      refute fired? :some, 'chan', plurality:1
+      refute fired? :some, 'chan', plurality:3
+    end
+    
     it "can match event parameters by array notation" do
       fire          [:some, 11, 22.2, :symbol, kwarg1:'one', kwarg2:2]
+      
       assert fired? [:some, 11]
       assert fired? [:some, 11, 22.2]
       assert fired? [:some, 11, 22.2, :symbol]
@@ -160,8 +173,17 @@ describe Wires::Test::Helper do
       assert fired? [:some, kwarg1:'one', kwarg2:2]
       assert fired? [:some, kwarg2:2]
       
+      assert fired? [:some, 11, kwarg1:'one']
+      assert fired? [:some, 11, 22.2, kwarg1:'one', kwarg2:2]
+      assert fired? [:some, 11, 22.2, :symbol, kwarg2:2]
+      assert fired? [:some, 11, 22.2, :symbol, kwarg1:'one']
+      assert fired? [:some, 11, 22.2, :symbol, kwarg1:'one', kwarg2:2]
+      assert fired? [:some, 11, 22.2, :symbol, kwarg2:2]
+      
       refute fired? [:some, kwarg3:'three']
     end
+    
+    it "can execute a given block on all matching events"
     
   end
 end
