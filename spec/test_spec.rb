@@ -94,11 +94,29 @@ describe Wires::Test::Helper do
       refute fired?     :event, /^han/
       assert fired?     :event, /(ch|fl)an+e_*l$/
       refute fired?     :event, /(pl|fl)an+e_*l$/
-      
     end
     
-    
-    
+    it "can test that only one event was matched"\
+       " and no other events were fired" do
+      clear_fired
+      fire :some, 'chan'
+      assert fired? :some, 'chan', exclusive:true
+      
+      clear_fired
+      fire :some, 'chan'
+      fire :some, 'chan'
+      refute fired? :some, 'chan', exclusive:true
+      
+      clear_fired
+      fire :some, 'chan'
+      fire :some, 'chan2'
+      refute fired? :some, 'chan', exclusive:true
+      
+      clear_fired
+      fire :some, 'chan'
+      fire :some_other, 'chan'
+      refute fired? :some, 'chan', exclusive:true
+    end
   end
 end
 

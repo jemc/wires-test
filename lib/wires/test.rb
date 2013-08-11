@@ -21,29 +21,35 @@ module Wires
         @received_wires_events.clear
       end
       
-      def fired?(event, channel='*',
-        clear:false, exclusive:false, id_exact:false, channel_exact:false)
+      def fired?(event, channel='*', clear:false, exclusive:false, 
+                 id_exact:false, channel_exact:false, &block)
         key_event = Event.new_from event
         key_chan  = Channel.new channel
         
-        result = ((not @received_wires_events.select { |e,c|
+        results = @received_wires_events.select { |e,c|
           (id_exact      ? (key_event === e) : (key_event =~ e)) and
           (channel_exact ? (key_chan  === c) : (key_chan  =~ c))
-        }.empty?) and ((not exclusive) or @received_wires_events.size=1))
+        }
+        
+        return false if results.empty?
+        return false if exclusive and (@received_wires_events.size != 1)
+        return false if exclusive and (results.size != 1)
+        
+        results.each(&block) # Execute passed block for each match
         
         clear_fired if clear
         
-        result
+        true
       end
       
-      def assert_fired(event, channel='*', assert_string=nil, **options)
-        assert fired?(event, channel, **options), assert_string||\
+      def assert_fired(event, channel='*', assert_string=nil, **options, &block)
+        assert fired?(event, channel, **options, &block), assert_string||\
           "Expected an event matching #{event.inspect}"\
           " to have been fired on channel #{channel.inspect}."
       end
       
-      def refute_fired(event, channel='*', assert_string=nil, **options)
-        refute fired?(event, channel, **options), assert_string||\
+      def refute_fired(event, channel='*', assert_string=nil, **options, &block)
+        refute fired?(event, channel, **options, &block), assert_string||\
           "Expected no events matching #{event.inspect}"\
           " to have been fired on channel #{channel.inspect}."
       end
