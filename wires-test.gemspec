@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.licenses      = "Copyright (c) Joe McIlvain. All rights reserved "
   
   s.add_dependency('wires')
-  s.add_dependency('minitest', '~> 4.3')
+  s.add_dependency('minitest', '~> 4.3.2')
   
   s.add_development_dependency('rake')
   s.add_development_dependency('jemc-reporter')
