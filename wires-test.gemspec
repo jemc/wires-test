@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name          = 'wires-test'
-  s.version       = '0.0.2'
-  s.date          = '2013-08-11'
+  s.version       = '0.0.3'
+  s.date          = '2013-08-18'
   s.summary       = "wires-test"
   s.description   = "Testing convenience gem for the wires framework."
   s.authors       = ["Joe McIlvain"]
