@@ -22,7 +22,7 @@ module Wires
       def fired?(event,channel=self, clear:false, exclusive:false, plurality:nil,
                  exact_event:false, exact_channel:false, &block)
         key_event = Event.new_from event
-        key_chan  = Channel.new channel
+        key_chan  = Channel[channel] unless channel.is_a? Channel
         
         results = @received_wires_events.select { |e,c|
           (exact_event   ? (key_event.class == e.class) : (key_event =~ e)) and
