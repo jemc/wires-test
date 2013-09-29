@@ -11,13 +11,11 @@ module Wires
       def before_setup
         @received_wires_events = []
         Channel.before_fire { |e,c| @received_wires_events << [e,c] }
-        Hub.run
         super
       end
       
       def after_teardown
         super
-        Hub.kill
         clear_fired
       end
       
