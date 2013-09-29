@@ -19,7 +19,7 @@ module Wires
         clear_fired
       end
       
-      def fired?(event,channel='*', clear:false, exclusive:false, plurality:nil,
+      def fired?(event,channel=self, clear:false, exclusive:false, plurality:nil,
                  exact_event:false, exact_channel:false, &block)
         key_event = Event.new_from event
         key_chan  = Channel.new channel
@@ -40,13 +40,13 @@ module Wires
         true
       end
       
-      def assert_fired(event, channel='*', assert_string=nil, **options, &block)
+      def assert_fired(event, channel=self, assert_string=nil, **options, &block)
         assert fired?(event, channel, **options, &block), assert_string||\
           "Expected an event matching #{event.inspect}"\
           " to have been fired on channel #{channel.inspect}."
       end
       
-      def refute_fired(event, channel='*', assert_string=nil, **options, &block)
+      def refute_fired(event, channel=self, assert_string=nil, **options, &block)
         refute fired?(event, channel, **options, &block), assert_string||\
           "Expected no events matching #{event.inspect}"\
           " to have been fired on channel #{channel.inspect}."
