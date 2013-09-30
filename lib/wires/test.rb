@@ -8,8 +8,8 @@ module Wires
     
     module Helper
       
-      def self.build_alt(wires_module_path, affix)
-        affix = affix.to_s
+      def self.build_alt(wires_module_path, affix:nil)
+        affix = affix.to_s if affix
         
         [__FILE__]
           .map  { |file| File.read file }
@@ -17,7 +17,8 @@ module Wires
             code.gsub!("Wires", "#{wires_module_path}")
             instance_methods.each do |meth|
               meth     = meth.to_s
-              sys_meth = meth.gsub /([^_]*)$/, "#{affix}_\1"
+              sys_meth = meth
+              sys_meth.gsub! /([^_]*)$/, "#{affix}_\1" if affix
               code.gsub!(meth, sys_meth)
             end
             eval code
