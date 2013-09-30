@@ -1,5 +1,7 @@
-gem 'minitest', '~> 4.3.2'
-require 'minitest/autorun'
+
+begin
+  require_relative 'test/minitest'
+end unless __FILE__=="(eval)"
 
 
 module Wires
@@ -7,23 +9,6 @@ module Wires
   module Test
     
     module Helper
-      
-      def self.build_alt(wires_module_path, affix:nil)
-        affix = affix.to_s if affix
-        
-        [__FILE__]
-          .map  { |file| File.read file }
-          .each do |code| 
-            code.gsub!("Wires", "#{wires_module_path}")
-            instance_methods.each do |meth|
-              meth     = meth.to_s
-              sys_meth = meth
-              sys_meth.gsub! /([^_]*)$/, "#{affix}_\1" if affix
-              code.gsub!(meth, sys_meth)
-            end
-            eval code
-          end
-      end
       
       def before_setup
         @received_wires_events = []
@@ -36,7 +21,7 @@ module Wires
         clear_fired
       end
       
-      def fired?(event,channel=self, 
+      def fired?(event, channel=self, 
                      clear:false, exclusive:false, plurality:nil,
                      exact_event:false, exact_channel:false)
         key_chan  = Channel[channel] unless channel.is_a? Channel
@@ -63,7 +48,7 @@ module Wires
         return false if plurality and (results.size != plurality)
         
         # Execute passed block for each match
-        results.each {|e,c| yield e,c if block_given?}
+        results.each { |e,c| yield e,c if block_given? }
         
         true
       end
@@ -83,10 +68,37 @@ module Wires
       def clear_fired
         @received_wires_events.clear
       end
+      
+      # Build an alternate version of Helper for an alternate Wires module
+      # Optionally, specify an affix to be used in method names;
+      # This helps to differentiate from the original Helper
+      def self.build_alt(wires_module_path, affix:nil)
+        affix = affix.to_s if affix
+        
+        [__FILE__] # List of files to mutate and eval
+          .map  { |file| File.read file }
+          .each do |code|
+            
+            code.gsub!(/Wires/, "#{wires_module_path}")
+            
+            mutated_names = 
+              instance_methods \
+              - [:before_setup, :after_teardown] \
+              + [:@received_wires_events]
+            
+            mutated_names.each do |meth|
+              meth     = meth.to_s
+              sys_meth = meth.gsub /([^_]+)$/, "#{affix}_\\1"
+              code.gsub!(meth, sys_meth)
+            end if affix
+            
+            eval code
+          end
+      end
     end
     
-    class Unit < Minitest::Unit;  include Test::Helper;  end
-    class Spec < Minitest::Spec;  include Test::Helper;  end
+    class Unit < ::Minitest::Unit;  include Test::Helper;  end
+    class Spec < ::Minitest::Spec;  include Test::Helper;  end
   end
   
 end
