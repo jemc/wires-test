@@ -1,7 +1,5 @@
 
-begin
-  require_relative 'test/minitest'
-end unless __FILE__=="(eval)"
+require_relative 'test/minitest'
 
 
 module Wires
