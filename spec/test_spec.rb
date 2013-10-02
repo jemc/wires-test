@@ -11,6 +11,7 @@ class SomeOtherEvent < SomeEvent;    end
 
 describe Wires::Test::Helper do
   
+  include Wires::Convenience
   include Wires::Test::Helper
   
   it 'tracks all events fired in each test' do
