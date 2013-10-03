@@ -161,31 +161,31 @@ describe Wires::Test::Helper do
     end
     
     it "can match event parameters by array notation" do
-      fire          [:some, 11, 22.2, :symbol, kwarg1:'one', kwarg2:2]
+      fire          [some:[11, 22.2, :symbol, kwarg1:'one', kwarg2:2]]
       
-      assert fired? [:some, 11]
-      assert fired? [:some, 11, 22.2]
-      assert fired? [:some, 11, 22.2, :symbol]
+      assert fired? [some:[11]]
+      assert fired? [some:[11, 22.2]]
+      assert fired? [some:[11, 22.2, :symbol]]
       
-      refute fired? [:some, 22.2]
-      refute fired? [:some, :symbol]
+      refute fired? [some:[22.2]]
+      refute fired? [some:[:symbol]]
       
-      assert fired? [:some, kwarg1:'one']
-      assert fired? [:some, kwarg1:'one', kwarg2:2]
-      assert fired? [:some, kwarg2:2]
+      assert fired? [some:[kwarg1:'one']]
+      assert fired? [some:[kwarg1:'one', kwarg2:2]]
+      assert fired? [some:[kwarg2:2]]
       
-      assert fired? [:some, 11, kwarg1:'one']
-      assert fired? [:some, 11, 22.2, kwarg1:'one', kwarg2:2]
-      assert fired? [:some, 11, 22.2, :symbol, kwarg2:2]
-      assert fired? [:some, 11, 22.2, :symbol, kwarg1:'one']
-      assert fired? [:some, 11, 22.2, :symbol, kwarg1:'one', kwarg2:2]
-      assert fired? [:some, 11, 22.2, :symbol, kwarg2:2]
+      assert fired? [some:[11, kwarg1:'one']]
+      assert fired? [some:[11, 22.2, kwarg1:'one', kwarg2:2]]
+      assert fired? [some:[11, 22.2, :symbol, kwarg2:2]]
+      assert fired? [some:[11, 22.2, :symbol, kwarg1:'one']]
+      assert fired? [some:[11, 22.2, :symbol, kwarg1:'one', kwarg2:2]]
+      assert fired? [some:[11, 22.2, :symbol, kwarg2:2]]
       
-      refute fired? [:some, kwarg3:'three']
+      refute fired? [some:[kwarg3:'three']]
     end
     
     it "can execute a given block on all matching events" do
-      fire [:some, 10, 55, 33, 88], 'chan'
+      fire [some:[10, 55, 33, 88]], 'chan'
       count = 0
       fired? :some do |e,c|
         count += 1
@@ -197,7 +197,7 @@ describe Wires::Test::Helper do
   
   describe '02 #assert_fired' do
     it "passes all args (including &block) to #fired? and asserts the result" do
-      fire [:some, 10, 55, 33, 88], 'chan'
+      fire [some:[10, 55, 33, 88]], 'chan'
       count = 0
       assert_fired :some, /^ch.n$/, exclusive:true do |e,c|
         count += 1
@@ -209,7 +209,7 @@ describe Wires::Test::Helper do
   
   describe '03 #refute_fired' do
     it "passes all args (including &block) to #fired? and refutes the result" do
-      fire [:some, 10, 55, 33, 88], 'chan'
+      fire [some:[10, 55, 33, 88]], 'chan'
       count = 0
       refute_fired :some_other, /^ch.n$/, clear:true do |e,c|
         count += 1
