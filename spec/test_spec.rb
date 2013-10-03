@@ -69,14 +69,11 @@ describe Wires::Test::Helper do
   
   describe '01 #fired?' do
     it "can be used to match against the stored list" do
-      fire :event
-      assert fired?     :event
+      fire              :event, 'channel'
       assert fired?     :event, 'channel'
-      assert fired?     :event, 'channel2'
-      
-      clear_fired; fire :event, 'channel'
-      assert fired?     :event
-      assert fired?     :event, 'channel'
+      refute fired?     :event
+      refute fired?     :event, self
+      assert fired?     :event, '*'
       refute fired?     :event, 'channel2'
     end
     
