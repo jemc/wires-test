@@ -44,15 +44,6 @@ describe Wires::Test::Helper do
     @received_wires_events.size.must_equal 1
   end
   
-  it 'will remember events if the Hub is killed/run inside the test' do
-    @received_wires_events.must_equal []
-    fire :event
-    @received_wires_events.size.must_equal 1
-    
-    Wires::Hub.kill; Wires::Hub.run
-    @received_wires_events.size.must_equal 1
-  end
-  
   describe '00 #clear_fired' do
     it "clears the list of stored event/channel pairs" do
       @received_wires_events.must_equal []      
