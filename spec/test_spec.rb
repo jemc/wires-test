@@ -26,7 +26,7 @@ describe Wires::Test::Helper do
     20.times do fire :event end
     @received_wires_events.size.must_equal 21
     
-    fire :some; fire :some
+    fire SomeEvent; fire [SomeEvent=>[33,22,kwarg:'dog']]
     @received_wires_events.size.must_equal 23
     @received_wires_events.select{|x| x[0].is_a? SomeEvent}
                           .size.must_equal 2
