@@ -204,5 +204,10 @@ describe Wires::Test::Helper do
       assert count.zero?
     end
   end
+  
+  describe "04 .build_alt" do
+    it "builds an alternate version"
+  end
+  
 end
 
