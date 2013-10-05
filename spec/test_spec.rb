@@ -69,10 +69,7 @@ describe Wires::Test::Helper do
     end
     
     it "matches event subclasses by default" do
-      fire :some
-      assert fired?  :event
-      assert fired?  :some
-      refute fired?  :some_other
+      fire SomeEvent
       assert fired?  Wires::Event
       assert fired?  SomeEvent
       refute fired?  SomeOtherEvent
@@ -81,11 +78,8 @@ describe Wires::Test::Helper do
       refute fired?  SomeOtherEvent.new
     end
     
-    it "can match an exact event class instead of including subclasses" do
-      fire :some
-      refute fired?  :event,             exact_event:true
-      assert fired?  :some,              exact_event:true
-      refute fired?  :some_other,        exact_event:true
+    it "can match an exact event_type instead of including subclasses" do
+      fire SomeEvent
       refute fired?  Wires::Event,       exact_event:true
       assert fired?  SomeEvent,          exact_event:true
       refute fired?  SomeOtherEvent,     exact_event:true
