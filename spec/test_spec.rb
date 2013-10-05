@@ -175,7 +175,7 @@ describe Wires::Test::Helper do
     it "can execute a given block on all matching events" do
       fire [some:[10, 55, 33, 88]], 'chan'
       count = 0
-      fired? :some do |e,c|
+      fired? :some, 'chan' do |e,c|
         count += 1
         e.args.each {|i| assert i>=10}
       end
