@@ -1,5 +1,5 @@
 
-require_relative 'test/minitest'
+require 'wires/test/minitest'
 
 
 module Wires
@@ -66,37 +66,37 @@ module Wires
       def clear_fired
         @received_wires_events.clear
       end
+    end
       
-      # Build an alternate version of Helper for an alternate Wires module
-      # Optionally, specify an affix to be used in method names;
-      # This helps to differentiate from the original Helper
-      def self.build_alt(wires_module_path, affix:nil)
-        affix = affix.to_s if affix
-        
-        [__FILE__] # List of files to mutate and eval
-          .map  { |file| File.read file }
-          .each do |code|
-            
-            code.gsub!(/Wires/, "#{wires_module_path}")
-            
-            mutated_names = 
-              instance_methods \
-              - [:before_setup, :after_teardown] \
-              + [:@received_wires_events]
-            
-            mutated_names.each do |meth|
-              meth     = meth.to_s
-              sys_meth = meth.gsub /([^_]+)$/, "#{affix}_\\1"
-              code.gsub!(meth, sys_meth)
-            end if affix
-            
-            eval code
-          end
-      end
+    # Build an alternate version of Test for an alternate Wires module
+    # Optionally, specify an affix to be used in method names;
+    # This helps to differentiate from the original Helper
+    def self.build_alt(wires_module_path, affix:nil)
+      affix = affix.to_s if affix
+      
+      [__FILE__] # List of files to mutate and eval
+        .map  { |file| File.read file }
+        .each do |code|
+          
+          code.gsub!(/Wires/, "#{wires_module_path}")
+          
+          mutated_names = 
+            Helper.instance_methods \
+            - [:before_setup, :after_teardown] \
+            + [:@received_wires_events]
+          
+          mutated_names.each do |meth|
+            meth     = meth.to_s
+            sys_meth = meth.gsub /([^_]+)$/, "#{affix}_\\1"
+            code.gsub!(meth, sys_meth)
+          end if affix
+          
+          eval code
+        end
     end
     
-    class Unit < ::Minitest::Unit;  include Test::Helper;  end
-    class Spec < ::Minitest::Spec;  include Test::Helper;  end
+    class Unit < ::Minitest::Unit;  include Helper;  end
+    class Spec < ::Minitest::Spec;  include Helper;  end
   end
   
 end
