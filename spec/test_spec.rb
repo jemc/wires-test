@@ -215,7 +215,7 @@ end
 
 describe Wires::Test do
   
-  describe "00 .build_alt" do
+  describe ".build_alt" do
     
     it "builds an alternate version of the Wires::Test module" do
       module UserModule
