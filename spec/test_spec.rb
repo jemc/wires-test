@@ -38,6 +38,16 @@ describe Wires::Test::Helper do
                           .size.must_equal 2
   end
   
+  it 'includes events fired with fire! (blocking)' do
+    @received_wires_events.must_equal []
+    
+    fire! :event
+    @received_wires_events.size.must_equal 1
+    event, chan = @received_wires_events[0]
+    event.must_be_instance_of Wires::Event
+    chan .must_be_instance_of Wires::Channel
+  end
+  
   it 'will not remember events from other tests' do
     @received_wires_events.must_equal []
     fire :event
