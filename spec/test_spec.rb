@@ -115,71 +115,71 @@ describe Wires::Test::Helper do
     end
     
     it "can clear the list after checking for a match" do
-      fire :some, 'chan'
-      assert fired?  :some, 'chan', clear:true
-      refute fired?  :some, 'chan'
+      fire :symb, 'chan'
+      assert fired?  :symb, 'chan', clear:true
+      refute fired?  :symb, 'chan'
     end
     
     it "can test that no non-matching events were fired" do
-      fire :some, 'chan'
-      assert fired? :some, 'chan', exclusive:true
+      fire :symb, 'chan'
+      assert fired? :symb, 'chan', exclusive:true
       
       clear_fired
-      fire :some, 'chan'
-      fire :some, 'chan'
-      assert fired? :some, 'chan', exclusive:true
+      fire :symb, 'chan'
+      fire :symb, 'chan'
+      assert fired? :symb, 'chan', exclusive:true
       
       clear_fired
-      fire :some, 'chan'
-      fire :some, 'chan2'
-      refute fired? :some, 'chan', exclusive:true
+      fire :symb, 'chan'
+      fire :symb, 'chan2'
+      refute fired? :symb, 'chan', exclusive:true
       
       clear_fired
       fire :event, 'chan'
-      fire :some, 'chan'
-      refute fired? :some, 'chan', exclusive:true
+      fire :symb, 'chan'
+      refute fired? :symb, 'chan', exclusive:true
     end
     
     it "can test the plurality of matching events" do
-      fire :some, 'chan'
-      assert fired? :some, 'chan', plurality:1
+      fire :symb, 'chan'
+      assert fired? :symb, 'chan', plurality:1
       
       clear_fired
-      fire :some, 'chan'
-      fire :some, 'chan'
-      assert fired? :some, 'chan', plurality:2
-      refute fired? :some, 'chan', plurality:1
-      refute fired? :some, 'chan', plurality:3
+      fire :symb, 'chan'
+      fire :symb, 'chan'
+      assert fired? :symb, 'chan', plurality:2
+      refute fired? :symb, 'chan', plurality:1
+      refute fired? :symb, 'chan', plurality:3
     end
     
     it "can match event parameters by array notation" do
-      fire          [some:[11, 22.2, :symbol, kwarg1:'one', kwarg2:2]]
+      fire          [symb:[11, 22.2, :symbol, kwarg1:'one', kwarg2:2]]
       
-      assert fired? [some:[11]]
-      assert fired? [some:[11, 22.2]]
-      assert fired? [some:[11, 22.2, :symbol]]
+      assert fired? [symb:[11]]
+      assert fired? [symb:[11, 22.2]]
+      assert fired? [symb:[11, 22.2, :symbol]]
       
-      refute fired? [some:[22.2]]
-      refute fired? [some:[:symbol]]
+      refute fired? [symb:[22.2]]
+      refute fired? [symb:[:symbol]]
       
-      assert fired? [some:[kwarg1:'one']]
-      assert fired? [some:[kwarg1:'one', kwarg2:2]]
-      assert fired? [some:[kwarg2:2]]
+      assert fired? [symb:[kwarg1:'one']]
+      assert fired? [symb:[kwarg1:'one', kwarg2:2]]
+      assert fired? [symb:[kwarg2:2]]
       
-      assert fired? [some:[11, kwarg1:'one']]
-      assert fired? [some:[11, 22.2, kwarg1:'one', kwarg2:2]]
-      assert fired? [some:[11, 22.2, :symbol, kwarg2:2]]
-      assert fired? [some:[11, 22.2, :symbol, kwarg1:'one']]
-      assert fired? [some:[11, 22.2, :symbol, kwarg1:'one', kwarg2:2]]
-      assert fired? [some:[11, 22.2, :symbol, kwarg2:2]]
+      assert fired? [symb:[11, kwarg1:'one']]
+      assert fired? [symb:[11, 22.2, kwarg1:'one', kwarg2:2]]
+      assert fired? [symb:[11, 22.2, :symbol, kwarg2:2]]
+      assert fired? [symb:[11, 22.2, :symbol, kwarg1:'one']]
+      assert fired? [symb:[11, 22.2, :symbol, kwarg1:'one', kwarg2:2]]
+      assert fired? [symb:[11, 22.2, :symbol, kwarg2:2]]
       
-      refute fired? [some:[kwarg3:'three']]
+      refute fired? [symb:[kwarg3:'three']]
     end
     
     it "can execute a given block on all matching events" do
-      fire [some:[10, 55, 33, 88]], 'chan'
+      fire [symb:[10, 55, 33, 88]], 'chan'
       count = 0
-      fired? :some, 'chan' do |e,c|
+      fired? :symb, 'chan' do |e,c|
         count += 1
         e.args.each {|i| assert i>=10}
       end
@@ -189,9 +189,9 @@ describe Wires::Test::Helper do
   
   describe '02 #assert_fired' do
     it "passes all args (including &block) to #fired? and asserts the result" do
-      fire [some:[10, 55, 33, 88]], 'chan'
+      fire [symb:[10, 55, 33, 88]], 'chan'
       count = 0
-      assert_fired :some, /^ch.n$/, exclusive:true do |e,c|
+      assert_fired :symb, /^ch.n$/, exclusive:true do |e,c|
         count += 1
         e.args.each {|i| assert i>=10}
       end
@@ -201,13 +201,13 @@ describe Wires::Test::Helper do
   
   describe '03 #refute_fired' do
     it "passes all args (including &block) to #fired? and refutes the result" do
-      fire [some:[10, 55, 33, 88]], 'chan'
+      fire [symb:[10, 55, 33, 88]], 'chan'
       count = 0
-      refute_fired :some_other, /^ch.n$/, clear:true do |e,c|
+      refute_fired :symb_2, /^ch.n$/, clear:true do |e,c|
         count += 1
         e.args.each {|i| assert i>=10}
       end
-      refute_fired :some, /^ch.n$/ do |e,c|
+      refute_fired :symb, /^ch.n$/ do |e,c|
         count += 1
         e.args.each {|i| assert i>=10}
       end
