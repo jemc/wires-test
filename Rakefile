@@ -1,12 +1,12 @@
-require 'rake/testtask'
+require 'rspec/core/rake_task'
 
 gemname = 'wires-test'
 
-task :default => [:test]
+task :default => :spec
 
 # Run tests
-Rake::TestTask.new :test do |t|
-  t.test_files = Dir['test/*.rb','spec/*.rb']
+RSpec::Core::RakeTask.new :spec do |c|
+  c.pattern = 'spec/**/*.spec.rb'
 end
 
 # Rebuild gem

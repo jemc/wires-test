@@ -15,5 +15,7 @@ Gem::Specification.new do |s|
   
   s.add_dependency('wires', '~> 0.5.0')
   
-  s.add_development_dependency('rake')
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'fivemat'
 end

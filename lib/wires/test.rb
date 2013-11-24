@@ -1,11 +1,6 @@
 
-require 'wires/test/minitest'
-
-
 module Wires
-  
   module Test
-    
     module Helper
       
       def before_setup
@@ -94,9 +89,6 @@ module Wires
           eval code
         end
     end
-    
-    class Unit < ::Minitest::Unit;  include Helper;  end
-    class Spec < ::Minitest::Spec;  include Helper;  end
   end
   
 end
