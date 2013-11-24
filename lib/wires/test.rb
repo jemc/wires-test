@@ -63,32 +63,32 @@ module Wires
       end
     end
       
-    # Build an alternate version of Test for an alternate Wires module
-    # Optionally, specify an affix to be used in method names;
-    # This helps to differentiate from the original Helper
-    def self.build_alt(wires_module_path, affix:nil)
-      affix = affix.to_s if affix
+    # # Build an alternate version of Test for an alternate Wires module
+    # # Optionally, specify an affix to be used in method names;
+    # # This helps to differentiate from the original Helper
+    # def self.build_alt(wires_module_path, affix:nil)
+    #   affix = affix.to_s if affix
       
-      [__FILE__] # List of files to mutate and eval
-        .map  { |file| File.read file }
-        .each do |code|
+    #   [__FILE__] # List of files to mutate and eval
+    #     .map  { |file| File.read file }
+    #     .each do |code|
           
-          code.gsub!(/Wires/, "#{wires_module_path}")
+    #       code.gsub!(/Wires/, "#{wires_module_path}")
           
-          mutated_names = 
-            Helper.instance_methods \
-            - [:wires_test_setup, :wires_test_teardown] \
-            + [:@received_wires_events]
+    #       mutated_names = 
+    #         Helper.instance_methods \
+    #         - [:wires_test_setup, :wires_test_teardown] \
+    #         + [:@received_wires_events]
           
-          mutated_names.each do |meth|
-            meth     = meth.to_s
-            sys_meth = meth.gsub /([^_]+)$/, "#{affix}_\\1"
-            code.gsub!(meth, sys_meth)
-          end if affix
+    #       mutated_names.each do |meth|
+    #         meth     = meth.to_s
+    #         sys_meth = meth.gsub /([^_]+)$/, "#{affix}_\\1"
+    #         code.gsub!(meth, sys_meth)
+    #       end if affix
           
-          eval code
-        end
-    end
+    #       eval code
+    #     end
+    # end
   end
 end
 
@@ -107,9 +107,23 @@ shared_context "with Wires stimulus" do |event|
   end
 end
 
-def with_stimulus(event, &block)
-  context "with stimulus #{event.inspect}" do
-    include_context "with Wires stimulus", event
-    instance_eval &block
+
+module Wires
+  module Test
+    module RSpec
+      module ExampleGroupMethods
+      
+        def with_stimulus(event, &block)
+          context "with stimulus #{event.inspect}" do
+            include_context "with Wires stimulus", event
+            instance_eval &block
+          end
+        end
+        
+      end
+    end
   end
 end
+
+
+RSpec.configuration.extend Wires::Test::RSpec::ExampleGroupMethods
