@@ -11,11 +11,9 @@ Gem::Specification.new do |s|
   
   s.require_path  = 'lib'
   s.homepage      = 'https://github.com/jemc/wires-test/'
-  s.licenses      = "Copyright (c) Joe McIlvain. All rights reserved "
+  s.licenses      = "Copyright 2013 Joe McIlvain. All rights reserved."
   
-  s.add_dependency('wires', '~> 0.4.0')
-  s.add_dependency('minitest', '~> 4.3.2')
+  s.add_dependency('wires', '~> 0.5.0')
   
   s.add_development_dependency('rake')
-  s.add_development_dependency('jemc-reporter')
 end
