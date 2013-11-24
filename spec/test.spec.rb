@@ -20,18 +20,17 @@ end
 
 
 describe TestObject do
-  # extend Wires::Test::Helper
   
   its(:touched) { should_not be }
   
-  
-  context do
-    include_context "with wires stimulus", :event
+  context "with explicit shared context include" do
+    include_context "with Wires stimulus", :event
     its(:touched) { should be }
   end
-  # with_stimulus :event do
-  #   its(:touched) { should be }
-  # end
+  
+  with_stimulus :event do
+    its(:touched) { should be }
+  end
 end
 
 # describe Wires::Test::Helper do

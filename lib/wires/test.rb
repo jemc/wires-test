@@ -3,14 +3,14 @@ module Wires
   module Test
     module Helper
       
-      def before_setup
+      def wires_test_setup
         @received_wires_events = []
         Channel.add_hook(:@before_fire) { |e,c| 
           @received_wires_events << [e,c]
         }
       end
       
-      def after_teardown
+      def wires_test_teardown
         clear_fired
       end
       
@@ -77,7 +77,7 @@ module Wires
           
           mutated_names = 
             Helper.instance_methods \
-            - [:before_setup, :after_teardown] \
+            - [:wires_test_setup, :wires_test_teardown] \
             + [:@received_wires_events]
           
           mutated_names.each do |meth|
@@ -93,18 +93,23 @@ module Wires
 end
 
 
-# def with_stimulus(event)
-  shared_context "with wires stimulus" do |event|
-    around do |example|
-      extend Wires::Test::Helper
-      
-      before_setup
-      Wires::Channel[subject].fire! event
-      # example.extend Wires::Test::Helper
-      example.run
-      after_teardown
-    end
+shared_context "with Wires stimulus" do |event|
+  around do |example|
+    receiver = subject
     
-    # yield
+    example.extend Wires::Test::Helper
+    example.wires_test_setup
+    
+    Wires::Channel[receiver].fire! event
+    example.run
+    
+    example.wires_test_teardown
   end
-# end
+end
+
+def with_stimulus(event, &block)
+  context "with stimulus #{event.inspect}" do
+    include_context "with Wires stimulus", event
+    instance_eval &block
+  end
+end
