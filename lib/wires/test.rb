@@ -5,12 +5,12 @@ module Wires
       
       def before_setup
         @received_wires_events = []
-        Channel.before_fire { |e,c| @received_wires_events << [e,c] }
-        super
+        Channel.add_hook(:@before_fire) { |e,c| 
+          @received_wires_events << [e,c]
+        }
       end
       
       def after_teardown
-        super
         clear_fired
       end
       
@@ -90,5 +90,21 @@ module Wires
         end
     end
   end
-  
 end
+
+
+# def with_stimulus(event)
+  shared_context "with wires stimulus" do |event|
+    around do |example|
+      extend Wires::Test::Helper
+      
+      before_setup
+      Wires::Channel[subject].fire! event
+      # example.extend Wires::Test::Helper
+      example.run
+      after_teardown
+    end
+    
+    # yield
+  end
+# end
