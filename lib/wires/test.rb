@@ -4,14 +4,16 @@ module Wires
     module Helper
       
       def wires_test_setup
-        @received_wires_events = []
+        @wires_events = []
+        @wires_test_fire_hook = \
         Channel.add_hook(:@before_fire) { |e,c| 
-          @received_wires_events << [e,c]
+          @wires_events << [e,c]
         }
       end
       
       def wires_test_teardown
-        clear_fired
+        @wires_events = nil
+        Channel.remove_hook(:@before_fire, &@wires_test_fire_hook)
       end
       
       def fired?(event, channel=self, 
@@ -29,7 +31,7 @@ module Wires
           raise ArgumentError,"Can't check for fired? on multiple events: #{key_event.inspect}"
         end
         
-        results = @received_wires_events.select { |e,c|
+        results = @wires_events.select { |e,c|
           (exact_event   ? (key_event.event_type == e.event_type) : (key_event =~ e)) and
           (exact_channel ? (key_chan  === c)                      : (key_chan  =~ c))
         }
@@ -37,7 +39,7 @@ module Wires
         clear_fired if clear
         
         return false if results.empty?
-        return false if exclusive and (@received_wires_events != results)
+        return false if exclusive and (@wires_events != results)
         return false if plurality and (results.size != plurality)
         
         # Execute passed block for each match
@@ -59,7 +61,7 @@ module Wires
       end
       
       def clear_fired
-        @received_wires_events.clear
+        @wires_events.clear
       end
     end
       
@@ -114,7 +116,7 @@ module Wires
       module ExampleGroupMethods
       
         def with_stimulus(event, &block)
-          context "with stimulus #{event.inspect}" do
+          context "(with stimulus #{event.inspect})" do
             include_context "with Wires stimulus", event
             instance_eval &block
           end

@@ -14,24 +14,34 @@ class TestObject
   attr_reader :touched
   
   def initialize
-    on(:event) { @touched = true }
+    @handlers = [
+      on(:touch) { @touched = true }
+    ]
   end
+  
+  def destroy
+    @handlers.each &:unregister
+  end
+  
 end
 
 
 describe TestObject do
+  after { subject.destroy }
   
   its(:touched) { should_not be }
   
   context "with explicit shared context include" do
-    include_context "with Wires stimulus", :event
+    include_context "with Wires stimulus", :touch
     its(:touched) { should be }
   end
   
-  with_stimulus :event do
+  with_stimulus :touch do
     its(:touched) { should be }
   end
 end
+
+
 
 # describe Wires::Test::Helper do
   
