@@ -19,10 +19,10 @@ module Wires
         Channel.remove_hook(:@before_fire, &@wires_test_fire_hook)
       end
       
-      def fired?(event, channel=nil, 
+      def fired?(event, channel, 
                  clear:false, exclusive:false, plurality:nil,
                  exact_event:false, exact_channel:false)
-        key_chan  = Channel[channel] unless channel.is_a? Channel
+        key_chan  = channel.is_a?(Channel) ? channel : Channel[channel]
         key_event = Event.list_from event
         
         case key_event.count
@@ -54,6 +54,21 @@ module Wires
       
       def clear_fired
         @wires_events.clear
+      end
+      
+      def wires_test_channel_from_kwargs **kwargs
+        # Get channel_name from keyword arguments
+        channel_name = \
+          kwargs.has_key?(:channel_name) ?
+            kwargs[:channel_name]        :
+            kwargs.has_key?(:to)           ?
+              eval(kwargs[:to].to_s)       :
+              subject
+        # Get channel object from channel_name or keyword argument :channel_obj
+        channel_obj = \
+          kwargs.has_key?(:channel_obj) ?
+            kwargs[:channel_obj]        :
+            Wires::Channel[channel_name]
       end
     end
       
@@ -106,19 +121,7 @@ shared_context "with Wires stimulus" do |event, **kwargs|
   include_context "with Wires"
   
   before do
-    # Get channel_name from keyword arguments
-    channel_name = \
-      kwargs.has_key?(:channel_name) ?
-        kwargs[:channel_name]        :
-        kwargs.has_key?(:to)       ?
-          eval(kwargs[:to].to_s)   :
-          subject
-    # Get channel object from channel_name or keyword argument :channel_obj
-    channel_obj = \
-      kwargs.has_key?(:channel_obj) ?
-        kwargs[:channel_obj]        :
-        Wires::Channel[channel_name]
-    
+    channel_obj = wires_test_channel_from_kwargs **kwargs
     channel_obj.fire event, blocking:true
   end
 end
@@ -136,15 +139,11 @@ module Wires
           end
         end
         
-        def it_fires(event=nil, &block)
+        def it_fires(event, **kwargs, &block)
           context "fires #{event.inspect}" do
-            the_it_fires_event_passed = event
-            block ?
-              let(:the_it_fires_event, &block) :
-              let(:the_it_fires_event) { the_it_fires_event_passed }
-            
             specify do
-              expect(fired? the_it_fires_event, subject).to be
+              channel_obj = wires_test_channel_from_kwargs **kwargs
+              expect(fired?(event, channel_obj)).to be
             end
           end
         end

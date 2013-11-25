@@ -16,6 +16,7 @@ class TestObject
   def initialize
     on(:touch) { @touched = true }
     on(:tag)   { fire :tagback }
+    on(:yelp)  { |e| yelp *e.args }
   end
   
   def yelp(message)
@@ -58,20 +59,26 @@ describe TestObject do
     its(:touched) { should be }
   end
   
-  # Test for return event upon stimulus event
   with_stimulus :tag do
     it_fires :tagback
   end
   
-  context "can check for fired events with manual Wires context", wires:true do
-    before { subject.yelp 'something' }
-    it_fires :shout[message:'something']
+  with_stimulus :tag do
+    it_fires :tagback, :to=>:subject
   end
   
-  context "can check for fired events with manual Wires context", wires:true do
-    let(:msg) { 'something' }
-    before    { subject.yelp msg }
-    it_fires  { :shout[message:msg] }
+  test_object3 = TestObject.new
+  with_stimulus :tag,  :channel=>test_object3 do
+    it_fires :tagback, :channel=>test_object3 
+  end
+  
+  test_object4 = TestObject.new
+  with_stimulus :tag,  :channel_obj=>Wires::Channel[test_object4] do
+    it_fires :tagback, :channel_obj=>Wires::Channel[test_object4] 
+  end
+  
+  with_stimulus :yelp['something'] do
+    it_fires :yelp['something']
   end
   
   context "with multiple Wires context inclusions" do
