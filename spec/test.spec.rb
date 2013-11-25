@@ -14,20 +14,13 @@ class TestObject
   attr_reader :touched
   
   def initialize
-    @handlers = [
-      on(:touch) { @touched = true }
-    ]
-  end
-  
-  def destroy
-    @handlers.each &:unregister
+    on(:touch) { @touched = true }
   end
   
 end
 
 
 describe TestObject do
-  after { subject.destroy }
   
   its(:touched) { should_not be }
   
