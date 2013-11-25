@@ -21,7 +21,8 @@ module Wires
       
       def fired?(event, channel, 
                  clear:false, exclusive:false, plurality:nil,
-                 exact_event:false, exact_channel:false)
+                 exact_event:false, exact_channel:false,
+                 &block)
         key_chan  = channel.is_a?(Channel) ? channel : Channel[channel]
         key_event = Event.list_from event
         
@@ -40,14 +41,16 @@ module Wires
           (exact_channel ? (key_chan  === c)                      : (key_chan  =~ c))
         }
         
+        results.select! { |e,c| yield e,c } if block_given?
+        
         clear_fired if clear
         
         return false if results.empty?
         return false if exclusive and (@wires_events != results)
         return false if plurality and (results.size != plurality)
         
-        # Execute passed block for each match
-        results.each { |e,c| yield e,c if block_given? }
+        # # Execute passed block for each match
+        # results.each { |e,c| yield e,c if block_given? }
         
         true
       end
@@ -143,7 +146,16 @@ module Wires
           context "fires #{event.inspect}" do
             specify do
               channel_obj = wires_test_channel_from_kwargs **kwargs
-              expect(fired?(event, channel_obj)).to be
+              expect(fired?(event, channel_obj, &block)).to be
+            end
+          end
+        end
+        
+        def it_fires_no(event, **kwargs, &block)
+          context "fires no #{event.inspect}" do
+            specify do
+              channel_obj = wires_test_channel_from_kwargs **kwargs
+              expect(fired?(event, channel_obj, &block)).to_not be
             end
           end
         end

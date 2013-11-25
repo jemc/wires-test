@@ -14,13 +14,13 @@ class TestObject
   attr_accessor :touched
   
   def initialize
-    on(:touch) { @touched = true }
-    on(:tag)   { fire :tagback }
-    on(:yelp)  { |e| yelp *e.args }
+    on(:touch)   { @touched = true }
+    on(:tag)     { fire :tagback }
+    on(:reverse) { |e| reverse *e.args }
   end
   
-  def yelp(message)
-    fire :shout[message:message]
+  def reverse(text)
+    fire :message[text.reverse, original:text]
   end
   
 end
@@ -77,8 +77,24 @@ describe TestObject do
     it_fires :tagback, :channel_obj=>Wires::Channel[test_object4] 
   end
   
-  with_stimulus :yelp['something'] do
-    it_fires :yelp['something']
+  with_stimulus :reverse['rats'] do
+    it_fires :message['star']
+  end
+  
+  with_stimulus :reverse['rats'] do
+    it_fires :message['star'] do |e|
+      e.original == 'rats'
+    end
+  end
+  
+  with_stimulus :reverse['rats'] do
+    it_fires_no :message['starstruck']
+  end
+  
+  with_stimulus :reverse['rats'] do
+    it_fires_no :message['star'] do |e|
+      e.original != 'rats'
+    end
   end
   
   context "with multiple Wires context inclusions" do
