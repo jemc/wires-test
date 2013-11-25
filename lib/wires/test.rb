@@ -48,18 +48,6 @@ module Wires
         true
       end
       
-      def assert_fired(event, channel=self, assert_string=nil, **options, &block)
-        assert fired?(event, channel, **options, &block), assert_string||\
-          "Expected an event matching #{event.inspect}"\
-          " to have been fired on channel #{channel.inspect}."
-      end
-      
-      def refute_fired(event, channel=self, assert_string=nil, **options, &block)
-        refute fired?(event, channel, **options, &block), assert_string||\
-          "Expected no events matching #{event.inspect}"\
-          " to have been fired on channel #{channel.inspect}."
-      end
-      
       def clear_fired
         @wires_events.clear
       end
@@ -95,14 +83,25 @@ module Wires
 end
 
 
-shared_context "with Wires stimulus" do |event|
+shared_context "with Wires stimulus" do |event, **kwargs|
   around do |example|
-    receiver = subject
+    # Get channel_name from keyword arguments
+    channel_name = \
+      kwargs.has_key?(:channel_name) ?
+        kwargs[:channel_name]        :
+        kwargs.has_key?(:to)       ?
+          eval(kwargs[:to].to_s)   :
+          subject
+    # Get channel object from channel_name or keyword argument :channel_obj
+    channel_obj = \
+      kwargs.has_key?(:channel_obj) ?
+        kwargs[:channel_obj]        :
+        Wires::Channel[channel_name]
     
     example.extend Wires::Test::Helper
     example.wires_test_setup
     
-    Wires::Channel[receiver].fire! event
+    channel_obj.fire! event
     example.run
     
     example.wires_test_teardown
@@ -115,9 +114,9 @@ module Wires
     module RSpec
       module ExampleGroupMethods
       
-        def with_stimulus(event, &block)
+        def with_stimulus(event, **kwargs, &block)
           context "(with stimulus #{event.inspect})" do
-            include_context "with Wires stimulus", event
+            include_context "with Wires stimulus", event, **kwargs
             instance_eval &block
           end
         end

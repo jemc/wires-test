@@ -11,16 +11,22 @@ require 'spec_helper'
 class TestObject
   include Wires::Convenience
   
-  attr_reader :touched
+  attr_accessor :touched
   
   def initialize
     on(:touch) { @touched = true }
   end
   
+  def reset
+    @touched = nil
+  end
+  
 end
 
 
+
 describe TestObject do
+  $global_test_object = TestObject.new
   
   its(:touched) { should_not be }
   
@@ -29,8 +35,26 @@ describe TestObject do
     its(:touched) { should be }
   end
   
+  # With implicit receiver Wires::Channel[subject]
   with_stimulus :touch do
     its(:touched) { should be }
+  end
+  
+  # With explicit reciever symbol referencing var in example scope
+  with_stimulus :touch, :to=>:subject do
+    its(:touched) { should be }
+  end
+  
+  # With explicit channel name in example group scope
+  with_stimulus :touch, :channel=>$global_test_object do
+    subject { $global_test_object }
+    its(:touched) { should be; subject.reset }
+  end
+  
+  # With explicit channel object in example group scope
+  with_stimulus :touch, :channel_obj=>Wires::Channel[$global_test_object] do
+    subject { $global_test_object }
+    its(:touched) { should be; subject.reset }
   end
 end
 
