@@ -15,10 +15,11 @@ class TestObject
   
   def initialize
     on(:touch) { @touched = true }
+    on(:tag)   { fire :tagback }
   end
   
-  def reset
-    @touched = nil
+  def yelp(message)
+    fire :shout[message:message]
   end
   
 end
@@ -26,8 +27,6 @@ end
 
 
 describe TestObject do
-  $global_test_object = TestObject.new
-  
   its(:touched) { should_not be }
   
   context "with explicit shared context include" do
@@ -46,15 +45,45 @@ describe TestObject do
   end
   
   # With explicit channel name in example group scope
-  with_stimulus :touch, :channel=>$global_test_object do
-    subject { $global_test_object }
-    its(:touched) { should be; subject.reset }
+  test_object1 = TestObject.new
+  with_stimulus :touch, :channel=>test_object1 do
+    subject { test_object1 }
+    its(:touched) { should be }
   end
   
   # With explicit channel object in example group scope
-  with_stimulus :touch, :channel_obj=>Wires::Channel[$global_test_object] do
-    subject { $global_test_object }
-    its(:touched) { should be; subject.reset }
+  test_object2 = TestObject.new
+  with_stimulus :touch, :channel_obj=>Wires::Channel[test_object2] do
+    subject { test_object2 }
+    its(:touched) { should be }
+  end
+  
+  # Test for return event upon stimulus event
+  with_stimulus :tag do
+    it_fires :tagback
+  end
+  
+  context "can check for fired events with manual Wires context", wires:true do
+    before { subject.yelp 'something' }
+    it_fires :shout[message:'something']
+  end
+  
+  context "can check for fired events with manual Wires context", wires:true do
+    let(:msg) { 'something' }
+    before    { subject.yelp msg }
+    it_fires  { :shout[message:msg] }
+  end
+  
+  context "with multiple Wires context inclusions" do
+    include_context "with Wires"
+    include_context "with Wires"
+    include_context "with Wires"
+    include_context "with Wires"
+    
+    before { fire :nothing, 'nowhere' }
+    it "picks up a fired event only once" do
+      expect(wires_events.count).to eq 1
+    end
   end
 end
 

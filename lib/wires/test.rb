@@ -3,6 +3,8 @@ module Wires
   module Test
     module Helper
       
+      attr_reader :wires_events
+      
       def wires_test_setup
         @wires_events = []
         @wires_test_fire_hook = \
@@ -12,15 +14,16 @@ module Wires
       end
       
       def wires_test_teardown
+        Wires::Hub.join_children
         @wires_events = nil
         Channel.remove_hook(:@before_fire, &@wires_test_fire_hook)
       end
       
-      def fired?(event, channel=self, 
-                     clear:false, exclusive:false, plurality:nil,
-                     exact_event:false, exact_channel:false)
+      def fired?(event, channel=nil, 
+                 clear:false, exclusive:false, plurality:nil,
+                 exact_event:false, exact_channel:false)
         key_chan  = Channel[channel] unless channel.is_a? Channel
-        key_event = Event.new_from event
+        key_event = Event.list_from event
         
         case key_event.count
         when 0
@@ -32,6 +35,7 @@ module Wires
         end
         
         results = @wires_events.select { |e,c|
+          c = Channel[c]
           (exact_event   ? (key_event.event_type == e.event_type) : (key_event =~ e)) and
           (exact_channel ? (key_chan  === c)                      : (key_chan  =~ c))
         }
@@ -83,8 +87,25 @@ module Wires
 end
 
 
+shared_context "with Wires", wires:true do
+  unless ancestors.include? Wires::Convenience
+    include Wires::Convenience
+  end
+  
+  unless ancestors.include? Wires::Test::Helper
+    include Wires::Test::Helper
+    around do |example|
+      wires_test_setup
+      example.run
+      wires_test_teardown
+    end
+  end
+end
+
 shared_context "with Wires stimulus" do |event, **kwargs|
-  around do |example|
+  include_context "with Wires"
+  
+  before do
     # Get channel_name from keyword arguments
     channel_name = \
       kwargs.has_key?(:channel_name) ?
@@ -98,13 +119,7 @@ shared_context "with Wires stimulus" do |event, **kwargs|
         kwargs[:channel_obj]        :
         Wires::Channel[channel_name]
     
-    example.extend Wires::Test::Helper
-    example.wires_test_setup
-    
-    channel_obj.fire! event
-    example.run
-    
-    example.wires_test_teardown
+    channel_obj.fire event, blocking:true
   end
 end
 
@@ -118,6 +133,19 @@ module Wires
           context "(with stimulus #{event.inspect})" do
             include_context "with Wires stimulus", event, **kwargs
             instance_eval &block
+          end
+        end
+        
+        def it_fires(event=nil, &block)
+          context "fires #{event.inspect}" do
+            the_it_fires_event_passed = event
+            block ?
+              let(:the_it_fires_event, &block) :
+              let(:the_it_fires_event) { the_it_fires_event_passed }
+            
+            specify do
+              expect(fired? the_it_fires_event, subject).to be
+            end
           end
         end
         
