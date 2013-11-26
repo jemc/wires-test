@@ -11,6 +11,31 @@ module UserModule
   AltWires.extend AltWires::Convenience
 end
 
+shared_examples "a module transformed by build_alt" do
+  it "it gets its instance methods replaced" do
+    alt_obj = Object.new.extend alt_mod
+    mod.instance_methods(false).each_with_index do |sym,i|
+      expect(alt_obj).not_to respond_to sym
+      expect(sym).to eq alt_mod.instance_methods(false)[i].to_s
+                               .gsub(/alt_/,'').to_sym
+    end
+  end
+  
+  it "it gets its instance variables replaced" do
+    obj     = Object.new.extend mod
+    alt_obj = Object.new.extend alt_mod
+    
+    begin; obj        .wires_test_setup; rescue NoMethodError; end
+    begin; alt_obj.alt_wires_test_setup; rescue NoMethodError; end
+    
+    obj.instance_variables.each_with_index do |sym, i|
+      expect(alt_obj.instance_variables).not_to include sym
+      expect(sym).to eq alt_obj.instance_variables[i].to_s
+                               .gsub(/alt_/,'').to_sym
+    end
+  end
+end
+
 describe Wires::Test do
   
   describe ".build_alt" do
@@ -20,40 +45,16 @@ describe Wires::Test do
       expect(Wires::Test::Helper).not_to eq ::UserModule::AltWires::Test::Helper
     end
     
-    it "replaces the instance methods of Wires::Test::Helper" do
-      mod     =                  Wires::Test::Helper
-      alt_mod = ::UserModule::AltWires::Test::Helper
-      alt_obj = Object.new.extend alt_mod
-      mod.instance_methods(false).each_with_index do |sym,i|
-        expect(alt_obj).not_to respond_to sym
-        expect(sym).to eq alt_mod.instance_methods(false)[i].to_s
-                                 .gsub(/alt_/,'').to_sym
-      end
+    describe Wires::Test::Helper do
+      let(:mod)     {                  Wires::Test::Helper }
+      let(:alt_mod) { ::UserModule::AltWires::Test::Helper }
+      it_behaves_like "a module transformed by build_alt"
     end
     
-    it "replaces the instance variables of Wires::Test::Helper" do
-      obj     = Object.new.extend                  Wires::Test::Helper
-      alt_obj = Object.new.extend ::UserModule::AltWires::Test::Helper
-      
-      obj        .wires_test_setup
-      alt_obj.alt_wires_test_setup
-      
-      obj.instance_variables.each_with_index do |sym, i|
-        expect(alt_obj.instance_variables).not_to include sym
-        expect(sym).to eq alt_obj.instance_variables[i].to_s
-                                 .gsub(/alt_/,'').to_sym
-      end
-    end
-    
-    it "replaces the instance methods of Wires::Test::RSpec::ExampleGroupMethods" do
-      mod     =                  Wires::Test::RSpec::ExampleGroupMethods
-      alt_mod = ::UserModule::AltWires::Test::RSpec::ExampleGroupMethods
-      alt_obj = Object.new.extend alt_mod
-      mod.instance_methods(false).each_with_index do |sym,i|
-        expect(alt_obj).not_to respond_to sym
-        expect(sym).to eq alt_mod.instance_methods(false)[i].to_s
-                                 .gsub(/alt_/,'').to_sym
-      end
+    describe Wires::Test::RSpec::ExampleGroupMethods do
+      let(:mod)     {                  Wires::Test::RSpec::ExampleGroupMethods }
+      let(:alt_mod) { ::UserModule::AltWires::Test::RSpec::ExampleGroupMethods }
+      it_behaves_like "a module transformed by build_alt"
     end
     
 #     it "can assign an affix to all defined methods of Helper" do
