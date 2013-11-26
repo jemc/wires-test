@@ -1,27 +1,28 @@
 
-eval <<'-END OF IMPLEMENTATION'
+# Encase all code in a HEREDOC string until the...
+<<'-END OF IMPLEMENTATION'
 
 module Wires
   module Test
     module Helper
       
-      attr_reader :wires_events
+      attr_reader :AFFIX_wires_events
       
-      def wires_test_setup
-        @wires_events = []
-        @wires_test_fire_hook = \
-        Channel.add_hook(:@before_fire) { |e,c| 
-          @wires_events << [e,c]
+      def AFFIX_wires_test_setup
+        @AFFIX_wires_events = []
+        @AFFIX_wires_test_fire_hook = \
+        Channel.add_hook(:@AFFIX_before_fire) { |e,c| 
+          @AFFIX_wires_events << [e,c]
         }
       end
       
-      def wires_test_teardown
+      def AFFIX_wires_test_teardown
         Wires::Hub.join_children
-        @wires_events = nil
-        Channel.remove_hook(:@before_fire, &@wires_test_fire_hook)
+        @AFFIX_wires_events = nil
+        Channel.remove_hook(:@AFFIX_before_fire, &@AFFIX_wires_test_fire_hook)
       end
       
-      def fired?(event, channel, 
+      def AFFIX_fired?(event, channel, 
                  clear:false, exclusive:false, plurality:nil,
                  exact_event:false, exact_channel:false,
                  &block)
@@ -37,7 +38,7 @@ module Wires
           raise ArgumentError,"Can't check for fired? on multiple events: #{key_event.inspect}"
         end
         
-        results = @wires_events.select { |e,c|
+        results = @AFFIX_wires_events.select { |e,c|
           c = Channel[c]
           (exact_event   ? (key_event.event_type == e.event_type) : (key_event =~ e)) and
           (exact_channel ? (key_chan  === c)                      : (key_chan  =~ c))
@@ -45,10 +46,10 @@ module Wires
         
         results.select! { |e,c| yield e,c } if block_given?
         
-        clear_fired if clear
+        clear_AFFIX_fired if clear
         
         return false if results.empty?
-        return false if exclusive and (@wires_events != results)
+        return false if exclusive and (@AFFIX_wires_events != results)
         return false if plurality and (results.size != plurality)
         
         # # Execute passed block for each match
@@ -57,11 +58,11 @@ module Wires
         true
       end
       
-      def clear_fired
-        @wires_events.clear
+      def clear_AFFIX_fired
+        @AFFIX_wires_events.clear
       end
       
-      def wires_test_channel_from_kwargs **kwargs
+      def AFFIX_wires_test_channel_from_kwargs **kwargs
         # Get channel_name from keyword arguments
         channel_name = \
           kwargs.has_key?(:channel_name) ?
@@ -91,8 +92,8 @@ module Wires
           
     #       mutated_names = 
     #         Helper.instance_methods \
-    #         - [:wires_test_setup, :wires_test_teardown] \
-    #         + [:@received_wires_events]
+    #         - [:AFFIX_wires_test_setup, :AFFIX_wires_test_teardown] \
+    #         + [:@AFFIX_received_wires_events]
           
     #       mutated_names.each do |meth|
     #         meth     = meth.to_s
@@ -107,7 +108,7 @@ module Wires
 end
 
 
-shared_context "with Wires", wires:true do
+shared_context "with AFFIX Wires", :AFFIX_wires=>true do
   unless ancestors.include? Wires::Convenience
     include Wires::Convenience
   end
@@ -115,27 +116,27 @@ shared_context "with Wires", wires:true do
   unless ancestors.include? Wires::Test::Helper
     include Wires::Test::Helper
     around do |example|
-      wires_test_setup
+      AFFIX_wires_test_setup
       example.run
-      wires_test_teardown
+      AFFIX_wires_test_teardown
     end
   end
 end
 
-shared_context "with Wires stimulus" do |event, **kwargs|
-  include_context "with Wires"
+shared_context "with AFFIX Wires stimulus" do |event, **kwargs|
+  include_context "with AFFIX Wires"
   
   before do
-    channel_obj = wires_test_channel_from_kwargs **kwargs
+    channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
     channel_obj.fire event, blocking:true
   end
 end
 
 
-RSpec::Matchers.define :have_fired do |event, channel=nil|
+RSpec::Matchers.define :have_AFFIX_fired do |event, channel=nil|
   match do |_|
     channel ||= subject
-    fired? event, channel
+    AFFIX_fired? event, channel
   end
 end
 
@@ -145,27 +146,27 @@ module Wires
     module RSpec
       module ExampleGroupMethods
       
-        def with_stimulus(event, **kwargs, &block)
+        def with_AFFIX_stimulus(event, **kwargs, &block)
           context "(with stimulus #{event.inspect})" do
-            include_context "with Wires stimulus", event, **kwargs
+            include_context "with AFFIX Wires stimulus", event, **kwargs
             instance_eval &block
           end
         end
         
-        def it_fires(event, **kwargs, &block)
+        def it_AFFIX_fires(event, **kwargs, &block)
           context "fires #{event.inspect}" do
             specify do
-              channel_obj = wires_test_channel_from_kwargs **kwargs
-              expect(fired?(event, channel_obj, &block)).to be
+              channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
+              expect(AFFIX_fired?(event, channel_obj, &block)).to be
             end
           end
         end
         
-        def it_fires_no(event, **kwargs, &block)
+        def it_AFFIX_fires_no(event, **kwargs, &block)
           context "fires no #{event.inspect}" do
             specify do
-              channel_obj = wires_test_channel_from_kwargs **kwargs
-              expect(fired?(event, channel_obj, &block)).to_not be
+              channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
+              expect(AFFIX_fired?(event, channel_obj, &block)).to_not be
             end
           end
         end
@@ -176,7 +177,8 @@ module Wires
 end
 
 -END OF IMPLEMENTATION
-
+.gsub(/AFFIX[_ ]/, "")    # Remove all AFFIX markers (see Wires::Test.build_alt)
+.tap { |code| eval code } # Eval the cleaned code in 
 
 
 RSpec.configuration.extend Wires::Test::RSpec::ExampleGroupMethods
