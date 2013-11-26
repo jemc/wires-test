@@ -97,15 +97,6 @@ describe TestObject do
     end
   end
   
-  # with_stimulus :reverse['rats'] do
-  #   specify { expect(:message['star']).to be_fired
-  #             [:message['star'], ].should be_fired }
-  # end
-  
-  # with_stimulus :reverse['rats'], :to=>:subject do
-  #   specify { expect(:message['star'], subject).to be_fired }
-  # end
-  
   with_stimulus :reverse['rats'] do
     it { should have_fired :message['star'] }
   end

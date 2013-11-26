@@ -132,14 +132,6 @@ shared_context "with Wires stimulus" do |event, **kwargs|
 end
 
 
-# RSpec::Matchers.define :be_fired do |_|
-#   match do |event, channel=nil|
-#     channel ||= subject
-#     fired? event, channel
-#   end
-# end
-
-
 RSpec::Matchers.define :have_fired do |event, channel=nil|
   match do |_|
     channel ||= subject
@@ -184,6 +176,7 @@ module Wires
 end
 
 -END OF IMPLEMENTATION
+
 
 
 RSpec.configuration.extend Wires::Test::RSpec::ExampleGroupMethods
