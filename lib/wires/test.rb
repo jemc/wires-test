@@ -1,4 +1,6 @@
 
+eval <<'-END OF IMPLEMENTATION'
+
 module Wires
   module Test
     module Helper
@@ -180,6 +182,8 @@ module Wires
     end
   end
 end
+
+-END OF IMPLEMENTATION
 
 
 RSpec.configuration.extend Wires::Test::RSpec::ExampleGroupMethods
