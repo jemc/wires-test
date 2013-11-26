@@ -11,7 +11,7 @@ module Wires
       def AFFIX_wires_test_setup
         @AFFIX_wires_events = []
         @AFFIX_wires_test_fire_hook = \
-        Channel.add_hook(:@AFFIX_before_fire) { |e,c| 
+        Channel.add_hook(:@before_fire) { |e,c| 
           @AFFIX_wires_events << [e,c]
         }
       end
@@ -19,7 +19,7 @@ module Wires
       def AFFIX_wires_test_teardown
         Wires::Hub.join_children
         @AFFIX_wires_events = nil
-        Channel.remove_hook(:@AFFIX_before_fire, &@AFFIX_wires_test_fire_hook)
+        Channel.remove_hook(:@before_fire, &@AFFIX_wires_test_fire_hook)
       end
       
       def AFFIX_fired?(event, channel, 
@@ -163,7 +163,7 @@ module Wires
     # Optionally, specify an affix to be used in method names;
     # This helps to differentiate from the original Helper
     def self.build_alt(wires_module_path, affix:nil)
-      affix = affix.to_s if affix
+      affix = affix ? affix.to_s+'_' : ''
       
       [__FILE__] # List of files to mutate and eval
         .map  { |file| File.read file }
@@ -173,7 +173,7 @@ module Wires
           code = $&
 
           code.gsub! /Wires/, "#{wires_module_path}"
-          code.gsub! /AFFIX[_ ]/, affix.to_s if affix
+          code.gsub! /AFFIX[_ ]/, affix
           
           eval code
         end
