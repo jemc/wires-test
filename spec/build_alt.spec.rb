@@ -1,8 +1,14 @@
 
+# Save RSpec matcher list before the build_alt
+$pre_existing_matchers = RSpec::Matchers.instance_methods
+
 require 'wires'
 require 'wires/test'
 
 require 'spec_helper'
+
+$defined_matchers = RSpec::Matchers.instance_methods \
+                    - $pre_existing_matchers
 
 
 module UserModule
@@ -56,6 +62,19 @@ describe Wires::Test do
       let(:alt_mod) { ::UserModule::AltWires::Test::RSpec::ExampleGroupMethods }
       it_behaves_like "a module transformed by build_alt"
     end
+    
+    it "copies and transforms the RSpec matchers that were defined" do
+      ary = RSpec::Matchers.instance_methods \
+            - $pre_existing_matchers \
+            - $defined_matchers
+      ary = ary.map(&:to_s).map{|s| s.gsub /alt_/, ''}.map(&:to_sym)
+      expect(ary).to match_array $defined_matchers
+    end
+    
+    describe ::RSpec::Matchers do
+      # binding.pry
+    end
+    
     
 #     it "can assign an affix to all defined methods of Helper" do
 #       [:clear_fired,  :fired?, 

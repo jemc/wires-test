@@ -31,7 +31,7 @@ describe TestObject do
   its(:touched) { should_not be }
   
   context "with explicit shared context include" do
-    include_context "with Wires stimulus", :touch
+    include_context "with wires stimulus", :touch
     its(:touched) { should be }
   end
   
@@ -109,11 +109,11 @@ describe TestObject do
     it { should have_fired :message['star'], subject }
   end
   
-  context "with multiple Wires context inclusions" do
-    include_context "with Wires"
-    include_context "with Wires"
-    include_context "with Wires"
-    include_context "with Wires"
+  context "with multiple wires context inclusions" do
+    include_context "with wires"
+    include_context "with wires"
+    include_context "with wires"
+    include_context "with wires"
     
     before { fire :nothing, 'nowhere' }
     it "picks up a fired event only once" do

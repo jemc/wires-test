@@ -81,7 +81,7 @@ module Wires
 end
 
 
-shared_context "with AFFIX Wires", :AFFIX_wires=>true do
+shared_context "with AFFIX wires", :AFFIX_wires=>true do
   unless ancestors.include? Wires::Convenience
     include Wires::Convenience
   end
@@ -96,8 +96,8 @@ shared_context "with AFFIX Wires", :AFFIX_wires=>true do
   end
 end
 
-shared_context "with AFFIX Wires stimulus" do |event, **kwargs|
-  include_context "with AFFIX Wires"
+shared_context "with AFFIX wires stimulus" do |event, **kwargs|
+  include_context "with AFFIX wires"
   
   before do
     channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
@@ -121,7 +121,7 @@ module Wires
       
         def with_AFFIX_stimulus(event, **kwargs, &block)
           context "(with stimulus #{event.inspect})" do
-            include_context "with AFFIX Wires stimulus", event, **kwargs
+            include_context "with AFFIX wires stimulus", event, **kwargs
             instance_eval &block
           end
         end
