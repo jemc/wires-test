@@ -77,33 +77,6 @@ module Wires
             Wires::Channel[channel_name]
       end
     end
-      
-    # # Build an alternate version of Test for an alternate Wires module
-    # # Optionally, specify an affix to be used in method names;
-    # # This helps to differentiate from the original Helper
-    # def self.build_alt(wires_module_path, affix:nil)
-    #   affix = affix.to_s if affix
-      
-    #   [__FILE__] # List of files to mutate and eval
-    #     .map  { |file| File.read file }
-    #     .each do |code|
-          
-    #       code.gsub!(/Wires/, "#{wires_module_path}")
-          
-    #       mutated_names = 
-    #         Helper.instance_methods \
-    #         - [:AFFIX_wires_test_setup, :AFFIX_wires_test_teardown] \
-    #         + [:@AFFIX_received_wires_events]
-          
-    #       mutated_names.each do |meth|
-    #         meth     = meth.to_s
-    #         sys_meth = meth.gsub /([^_]+)$/, "#{affix}_\\1"
-    #         code.gsub!(meth, sys_meth)
-    #       end if affix
-          
-    #       eval code
-    #     end
-    # end
   end
 end
 
@@ -133,7 +106,7 @@ shared_context "with AFFIX Wires stimulus" do |event, **kwargs|
 end
 
 
-RSpec::Matchers.define :have_AFFIX_fired do |event, channel=nil|
+::RSpec::Matchers.define :have_AFFIX_fired do |event, channel=nil|
   match do |_|
     channel ||= subject
     AFFIX_fired? event, channel
@@ -182,3 +155,28 @@ end
 
 
 RSpec.configuration.extend Wires::Test::RSpec::ExampleGroupMethods
+
+
+module Wires
+  module Test
+    # Build an alternate version of Test for an alternate Wires module
+    # Optionally, specify an affix to be used in method names;
+    # This helps to differentiate from the original Helper
+    def self.build_alt(wires_module_path, affix:nil)
+      affix = affix.to_s if affix
+      
+      [__FILE__] # List of files to mutate and eval
+        .map  { |file| File.read file }
+        .each do |code|
+          
+          code =~ /(?<='-END OF IMPLEMENTATION').*?(?=-END OF IMPLEMENTATION)/m
+          code = $&
+
+          code.gsub! /Wires/, "#{wires_module_path}"
+          code.gsub! /AFFIX[_ ]/, affix.to_s if affix
+          
+          eval code
+        end
+    end
+  end
+end

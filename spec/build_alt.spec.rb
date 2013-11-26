@@ -1,20 +1,24 @@
 
-# module UserModule
-#   Wires::Util.build_alt "::#{self}::AltWires"
-#   Wires::Test.build_alt "::#{self}::AltWires", affix:'alt'
-#   AltWires.extend AltWires::Convenience
-# end
+require 'wires'
+require 'wires/test'
 
-# describe Wires::Test do
+require 'spec_helper'
+
+
+module UserModule
+  Wires::Util.build_alt "::#{self}::AltWires"
+  Wires::Test.build_alt "::#{self}::AltWires", affix:'alt'
+  AltWires.extend AltWires::Convenience
+end
+
+describe Wires::Test do
   
-#   describe ".build_alt" do
+  describe ".build_alt" do
     
-#     it "builds an alternate version of the Wires::Test module" do
-#       module UserModule
-#         Wires::Test        .wont_equal AltWires::Test
-#         Wires::Test::Helper.wont_equal AltWires::Test::Helper
-#       end
-#     end
+    it "builds an alternate version of the Wires::Test module" do
+      expect(Wires::Test)        .not_to eq ::UserModule::AltWires::Test
+      expect(Wires::Test::Helper).not_to eq ::UserModule::AltWires::Test::Helper
+    end
     
 #     it "can assign an affix to all defined methods of Helper" do
 #       [:clear_fired,  :fired?, 
@@ -53,6 +57,6 @@
 #       end
 #     end
     
-#   end
+  end
   
-# end
+end
