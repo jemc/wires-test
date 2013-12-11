@@ -22,28 +22,40 @@ module Wires
         Channel.remove_hook(:@before_fire, &@AFFIX_wires_test_fire_hook)
       end
       
-      def AFFIX_fired?(event, channel, 
+      def AFFIX_fired?(event, channel=:__no_channel_was_specified__, 
                  clear:false, exclusive:false, plurality:nil,
                  exact_event:false, exact_channel:false,
                  &block)
-        key_chan  = channel.is_a?(Channel) ? channel : Channel[channel]
+        key_chan = 
+          case channel
+          when :__no_channel_was_specified__
+            nil
+          when Channel
+            channel
+          else
+            Channel[channel]
+          end
+        
         key_event = Event.list_from event
         
         case key_event.count
         when 0
-          raise ArgumentError,"Can't create an event from input: #{input.inspect}"
+          raise ArgumentError,"Can't create an event from input: "\
+                              "#{event.inspect}"
         when 1
           key_event = key_event.first
         else
-          raise ArgumentError,"Can't check for fired? on multiple events: #{key_event.inspect}"
+          raise ArgumentError,"Can't check for fired? on multiple events: "\
+                              "#{key_event.inspect}"
         end
         
         results = @AFFIX_wires_events.select { |e,c|
           c = Channel[c]
-          (exact_event   ? (key_event == e) : (key_event =~ e)) and
-          (exact_channel ? (key_chan  == c) : (key_chan  =~ c))
+          (exact_event   ? (key_event == e) : (key_event =~ e)) && (!key_chan ||
+          (exact_channel ? (key_chan  == c) : (key_chan  =~ c)))
         }
         
+        # If passed a block, use it to determine
         results.select! { |e,c| yield e,c } if block_given?
         
         clear_AFFIX_fired if clear
@@ -51,9 +63,6 @@ module Wires
         return false if results.empty?
         return false if exclusive and (@AFFIX_wires_events != results)
         return false if plurality and (results.size != plurality)
-        
-        # # Execute passed block for each match
-        # results.each { |e,c| yield e,c if block_given? }
         
         true
       end

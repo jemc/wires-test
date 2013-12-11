@@ -177,150 +177,132 @@ describe Wires::Test::Helper, iso:true, wires:true do
     end
   end
   
-  # describe '01 #fired?' do
-    # it "can be used to match against the stored list" do
-    #   fire   :event, 'channel'
-    #   fired?(:event, 'channel') .should be
-    #   fired?(:event)            .should_not be
-    #   fired?(:event, self)      .should_not be
-    #   fired?(:event, 'channel2').should_not be
-    # end
+  describe '01 #fired?' do
     
-    # it "matches event subclasses by default" do
-    #   fire SomeEvent
-    #   assert fired?  Wires::Event
-    #   assert fired?  SomeEvent
-    #   refute fired?  SomeOtherEvent
-    #   assert fired?  Wires::Event.new
-    #   assert fired?  SomeEvent.new
-    #   refute fired?  SomeOtherEvent.new
-    # end
+    let(:test_events) { [
+      :event,         :event[1],         :event[1,2,3], 
+      :event[kw:'a'], :event[1, kw:'a'], :event[1,2,3, kw:'a'],
+      :other,         :other[1],         :other[1,2,3], 
+      :other[kw:'a'], :other[1, kw:'a'], :other[1,2,3, kw:'a']
+    ].map(&:to_wires_event) }
     
-  #   it "can match an exact event_type instead of including subclasses" do
-  #     fire SomeEvent
-  #     refute fired?  Wires::Event,       exact_event:true
-  #     assert fired?  SomeEvent,          exact_event:true
-  #     refute fired?  SomeOtherEvent,     exact_event:true
-  #     refute fired?  Wires::Event.new,   exact_event:true
-  #     assert fired?  SomeEvent.new,      exact_event:true
-  #     refute fired?  SomeOtherEvent.new, exact_event:true
-  #   end
+    let(:test_channels) { [
+      'channel', /han/, /^han/, 
+      /(ch|fl)an+e_*l$/, /(pl|fl)an+e_*l$/
+    ].map { |name| Wires::Channel[name] } }
     
-  #   it "matches all channels for which the key channel is relevant" do
-  #     fire           :event, 'channel'
-  #     assert fired?  :event, /han/
-  #     refute fired?  :event, /^han/
-  #     assert fired?  :event, /(ch|fl)an+e_*l$/
-  #     refute fired?  :event, /(pl|fl)an+e_*l$/
-  #   end
+    it "can be used to match against the stored list" do
+      fire   :event, 'channel'
+      fired?(:event)            .should be
+      fired?(:event, 'channel') .should be
+      fired?(:event, 'channel2').should_not be
+      fired?(:event, self)      .should_not be
+    end
     
-  #   it "can match an exact channel instead of by relevance" do
-  #     fire           :event, 'channel'
-  #     assert fired?  :event, /han/
-  #     refute fired?  :event, /^han/
-  #     assert fired?  :event, /(ch|fl)an+e_*l$/
-  #     refute fired?  :event, /(pl|fl)an+e_*l$/
-  #   end
+    it "matches using Event#=~ by default" do
+      test_events.each do |e_fired|
+        test_events.each do |e_test|
+          expected_result = e_test =~ e_fired
+          fire e_fired
+          expect(fired? e_test).to eq expected_result
+          clear_fired
+        end
+      end
+    end
     
-  #   it "can clear the list after checking for a match" do
-  #     fire :symb, 'chan'
-  #     assert fired?  :symb, 'chan', clear:true
-  #     refute fired?  :symb, 'chan'
-  #   end
+    it "matches using Event#== when exact_event:true is specified" do
+      test_events.each do |e_fired|
+        test_events.each do |e_test|
+          expected_result = e_test == e_fired
+          fire e_fired
+          expect(fired? e_test, exact_event:true).to eq expected_result
+          clear_fired
+        end
+      end
+    end
     
-  #   it "can test that no non-matching events were fired" do
-  #     fire :symb, 'chan'
-  #     assert fired? :symb, 'chan', exclusive:true
-      
-  #     clear_fired
-  #     fire :symb, 'chan'
-  #     fire :symb, 'chan'
-  #     assert fired? :symb, 'chan', exclusive:true
-      
-  #     clear_fired
-  #     fire :symb, 'chan'
-  #     fire :symb, 'chan2'
-  #     refute fired? :symb, 'chan', exclusive:true
-      
-  #     clear_fired
-  #     fire :event, 'chan'
-  #     fire :symb, 'chan'
-  #     refute fired? :symb, 'chan', exclusive:true
-  #   end
+    it "matches using Channel#=~ by default" do
+      test_channels.each do |c_fired|
+        unless c_fired.not_firable
+          test_channels.each do |c_test|
+            expected_result = c_test =~ c_fired
+            fire :event, c_fired
+            expect(fired? :event, c_test).to eq expected_result
+            clear_fired
+          end
+        end
+      end
+    end
     
-  #   it "can test the plurality of matching events" do
-  #     fire :symb, 'chan'
-  #     assert fired? :symb, 'chan', plurality:1
-      
-  #     clear_fired
-  #     fire :symb, 'chan'
-  #     fire :symb, 'chan'
-  #     assert fired? :symb, 'chan', plurality:2
-  #     refute fired? :symb, 'chan', plurality:1
-  #     refute fired? :symb, 'chan', plurality:3
-  #   end
+    it "matches using Channel#== when exact_channel:true is specified" do
+      test_channels.each do |c_fired|
+        unless c_fired.not_firable
+          test_channels.each do |c_test|
+            expected_result = c_test == c_fired
+            fire :event, c_fired
+            expect(fired? :event, c_test, exact_channel:true).to eq expected_result
+            clear_fired
+          end
+        end
+      end
+    end
     
-  #   it "can match event parameters by array notation" do
-  #     fire          [symb:[11, 22.2, :symbol, kwarg1:'one', kwarg2:2]]
-      
-  #     assert fired? [symb:[11]]
-  #     assert fired? [symb:[11, 22.2]]
-  #     assert fired? [symb:[11, 22.2, :symbol]]
-      
-  #     refute fired? [symb:[22.2]]
-  #     refute fired? [symb:[:symbol]]
-      
-  #     assert fired? [symb:[kwarg1:'one']]
-  #     assert fired? [symb:[kwarg1:'one', kwarg2:2]]
-  #     assert fired? [symb:[kwarg2:2]]
-      
-  #     assert fired? [symb:[11, kwarg1:'one']]
-  #     assert fired? [symb:[11, 22.2, kwarg1:'one', kwarg2:2]]
-  #     assert fired? [symb:[11, 22.2, :symbol, kwarg2:2]]
-  #     assert fired? [symb:[11, 22.2, :symbol, kwarg1:'one']]
-  #     assert fired? [symb:[11, 22.2, :symbol, kwarg1:'one', kwarg2:2]]
-  #     assert fired? [symb:[11, 22.2, :symbol, kwarg2:2]]
-      
-  #     refute fired? [symb:[kwarg3:'three']]
-  #   end
+    it "matches both event and channel simultaneously" do
+      test_events.each do |e_fired|
+        test_events.each do |e_test|
+          test_channels.each do |c_fired|
+            unless c_fired.not_firable
+              test_channels.each do |c_test|
+                expected_result = (e_test =~ e_fired) && (c_test =~ c_fired)
+                fire e_fired, c_fired
+                expect(fired? e_test, c_test).to eq expected_result
+                clear_fired
+              end
+            end
+          end
+        end
+      end
+    end
     
-  #   it "can execute a given block on all matching events" do
-  #     fire [symb:[10, 55, 33, 88]], 'chan'
-  #     count = 0
-  #     fired? :symb, 'chan' do |e,c|
-  #       count += 1
-  #       e.args.each {|i| assert i>=10}
-  #     end
-  #     refute count.zero?
-  #   end
-  # end
-  
-  # describe '02 #assert_fired' do
-  #   it "passes all args (including &block) to #fired? and asserts the result" do
-  #     fire [symb:[10, 55, 33, 88]], 'chan'
-  #     count = 0
-  #     assert_fired :symb, /^ch.n$/, exclusive:true do |e,c|
-  #       count += 1
-  #       e.args.each {|i| assert i>=10}
-  #     end
-  #     refute count.zero?
-  #   end
-  # end
-  
-  # describe '03 #refute_fired' do
-  #   it "passes all args (including &block) to #fired? and refutes the result" do
-  #     fire [symb:[10, 55, 33, 88]], 'chan'
-  #     count = 0
-  #     refute_fired :symb_2, /^ch.n$/, clear:true do |e,c|
-  #       count += 1
-  #       e.args.each {|i| assert i>=10}
-  #     end
-  #     refute_fired :symb, /^ch.n$/ do |e,c|
-  #       count += 1
-  #       e.args.each {|i| assert i>=10}
-  #     end
-  #     assert count.zero?
-  #   end
-  # end
-  
+    it "can clear the list after checking for a match with clear:true" do
+      fire   :event, 'channel'
+      fired?(:event, 'channel')            .should be
+      fired?(:event, 'channel')            .should be
+      fired?(:event, 'channel', clear:true).should be
+      fired?(:event, 'channel')            .should_not be
+    end
+    
+    it "can test that no non-matching events were fired" do
+      fire :event, 'chan'
+      fired?(:event, 'chan', exclusive:true).should be
+      
+      clear_fired
+      fire :event, 'chan'
+      fire :event, 'chan'
+      fired?(:event, 'chan', exclusive:true).should be
+      
+      clear_fired
+      fire :event, 'chan'
+      fire :event, 'chan2'
+      fired?(:event, 'chan', exclusive:true).should_not be
+      
+      clear_fired
+      fire :other_event, 'chan'
+      fire :event, 'chan'
+      fired?(:event, 'chan', exclusive:true).should_not be
+    end
+    
+    it "can test the plurality of matching events" do
+      fire :symb, 'chan'
+      fired?(:symb, 'chan', plurality:1).should be
+      
+      clear_fired
+      fire :symb, 'chan'
+      fire :symb, 'chan'
+      fired?(:symb, 'chan', plurality:2).should be
+      fired?(:symb, 'chan', plurality:1).should_not be
+      fired?(:symb, 'chan', plurality:3).should_not be
+    end
+    
+  end
 end
