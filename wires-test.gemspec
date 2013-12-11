@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name          = 'wires-test'
-  s.version       = '0.1.1'
+  s.version       = '0.1.2'
   s.date          = '2013-12-10'
   s.summary       = "wires-test"
   s.description   = "Testing convenience gem for the wires framework."
