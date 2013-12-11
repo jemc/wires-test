@@ -117,16 +117,25 @@ shared_context "with AFFIX wires stimulus" do |event, **kwargs|
 end
 
 
-::RSpec::Matchers.define :have_AFFIX_fired do |event, channel=:__no_channel_was_specified__|
+::RSpec::Matchers.define :have_AFFIX_fired do |event, channel=:__no_channel_was_specified__, fulfilling:nil|
   match do |_|
-    AFFIX_fired? event, channel
+    AFFIX_fired? event, channel, &fulfilling
   end
+  
+  description do
+    str = "have fired #{event.inspect}"
+    str += " on #{channel.inspect}" unless channel==:__no_channel_was_specified__
+    str
+  end
+  
   failure_message_for_should do |*args, &blk|
     "received: \n  #{actual_events.map(&:inspect).join("\n  ")}"
   end
+  
   failure_message_for_should_not do |*args, &blk|
     "received: \n  #{actual_events.map(&:inspect).join("\n  ")}"
   end
+  
   def actual_events
     matcher_execution_context.instance_variable_get :@AFFIX_wires_events
   end
@@ -149,7 +158,7 @@ module Wires
           context "fires #{event.inspect}" do
             specify do
               channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
-              expect(AFFIX_fired?(event, channel_obj, &block)).to be
+              should have_AFFIX_fired event, channel_obj, fulfilling:block
             end
           end
         end
@@ -158,7 +167,7 @@ module Wires
           context "fires no #{event.inspect}" do
             specify do
               channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
-              expect(AFFIX_fired?(event, channel_obj, &block)).to_not be
+              should_not have_AFFIX_fired event, channel_obj, fulfilling:block
             end
           end
         end
