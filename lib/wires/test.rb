@@ -103,6 +103,8 @@ shared_context "with AFFIX wires", :AFFIX_wires=>true do
       AFFIX_wires_test_teardown
     end
   end
+  
+  extend Wires::Test::RSpec::ExampleGroupMethods
 end
 
 shared_context "with AFFIX wires stimulus" do |event, **kwargs|
@@ -129,7 +131,7 @@ module Wires
       module ExampleGroupMethods
       
         def with_AFFIX_stimulus(event, **kwargs, &block)
-          context "(with stimulus #{event.inspect})" do
+          context "(with AFFIX stimulus #{event.inspect})" do
             include_context "with AFFIX wires stimulus", event, **kwargs
             instance_eval &block
           end
@@ -162,8 +164,6 @@ end
 .gsub(/AFFIX[_ ]/, "")    # Remove all AFFIX markers (see Wires::Test.build_alt)
 .tap { |code| eval code } # Eval the cleaned code in 
 
-
-RSpec.configuration.extend Wires::Test::RSpec::ExampleGroupMethods
 
 
 module Wires

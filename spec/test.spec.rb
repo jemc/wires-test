@@ -24,7 +24,7 @@ end
 
 
 
-describe TestObject do
+describe TestObject, wires:true do
   its(:touched) { should_not be }
   
   context "with explicit shared context include" do
@@ -121,7 +121,7 @@ end
 
 
 
-describe Wires::Test::Helper, iso:true, wires:true do
+describe Wires::Test::Helper, wires:true do
   
   include Wires::Convenience
   
