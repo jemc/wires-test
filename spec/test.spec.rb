@@ -5,9 +5,6 @@ require 'wires/test'
 require 'spec_helper'
 
 
-# class SomeEvent      < Wires::Event; end
-# class SomeOtherEvent < SomeEvent;    end
-
 class TestObject
   include Wires::Convenience
   
@@ -124,85 +121,80 @@ end
 
 
 
-# describe Wires::Test::Helper do
+describe Wires::Test::Helper, iso:true, wires:true do
   
+  include Wires::Convenience
   
-  # include Wires::Convenience
-  # include Wires::Test::Helper
-  
-  # it 'tracks all events fired in each test' do
-  #   @received_wires_events.must_equal []
+  it 'tracks all events fired in each test' do
+    @wires_events.should eq []
     
-  #   fire :event
-  #   @received_wires_events.size.must_equal 1
-  #   event, chan = @received_wires_events[0]
-  #   event.must_be_instance_of Wires::Event
-  #   chan .must_be_instance_of Wires::Channel
+    fire :event
+    @wires_events.size.should eq 1
+    event, chan = @wires_events[0]
+    expect(event).to eq :event
+    expect(chan).to eq self
     
-  #   20.times do fire :event end
-  #   @received_wires_events.size.must_equal 21
+    20.times do fire :event end
+    @wires_events.size.should eq 21
     
-  #   fire SomeEvent; fire [SomeEvent=>[33,22,kwarg:'dog']]
-  #   @received_wires_events.size.must_equal 23
-  #   @received_wires_events.select{|x| x[0].is_a? SomeEvent}
-  #                         .size.must_equal 2
+    fire :some_event; fire :some_event[33,22,kwarg:'dog']
+    @wires_events.size.should eq 23
+    @wires_events.select{|x| x[0].type == :some_event }.size.should eq 2
     
-  #   fire :event, 'some_channel'
-  #   fire :event, 'some_channel'
-  #   @received_wires_events.size.must_equal 25
-  #   @received_wires_events.select{|x| x[1]==Wires::Channel.new('some_channel')}
-  #                         .size.must_equal 2
-  # end
+    fire :event, 'some_channel'
+    fire :event, 'some_channel'
+    @wires_events.size.should eq 25
+    @wires_events.select{|x| x[1]=='some_channel'}.size.should eq 2
+  end
   
-  # it 'includes events fired with fire! (blocking)' do
-  #   @received_wires_events.must_equal []
+  it 'includes events fired with fire! (blocking)' do
+    @wires_events.should eq []
     
-  #   fire! :event
-  #   @received_wires_events.size.must_equal 1
-  #   event, chan = @received_wires_events[0]
-  #   event.must_be_instance_of Wires::Event
-  #   chan .must_be_instance_of Wires::Channel
-  # end
+    fire! :event
+    @wires_events.size.should eq 1
+    event, chan = @wires_events[0]
+    expect(event).to eq :event
+    expect(chan).to eq self
+  end
   
-  # it 'will not remember events from other tests' do
-  #   @received_wires_events.must_equal []
-  #   fire :event
-  #   @received_wires_events.size.must_equal 1
-  # end
+  it 'will not remember events from other tests' do
+    @wires_events.should eq []
+    fire :event
+    @wires_events.size.should eq 1
+  end
   
-  # describe '00 #clear_fired' do
-  #   it "clears the list of stored event/channel pairs" do
-  #     @received_wires_events.must_equal []      
-  #     fire :event
-  #     @received_wires_events.size.must_equal 1
-  #     clear_fired
-  #     @received_wires_events.size.must_equal 0
-  #     20.times { fire :event }
-  #     @received_wires_events.size.must_equal 20
-  #     clear_fired
-  #     @received_wires_events.size.must_equal 0
-  #   end
-  # end
+  describe '00 #clear_fired' do
+    it "clears the list of stored event/channel pairs" do
+      @wires_events.should eq []      
+      fire :event
+      @wires_events.size.should eq 1
+      clear_fired
+      @wires_events.size.should eq 0
+      20.times { fire :event }
+      @wires_events.size.should eq 20
+      clear_fired
+      @wires_events.size.should eq 0
+    end
+  end
   
   # describe '01 #fired?' do
-  #   it "can be used to match against the stored list" do
-  #     fire              :event, 'channel'
-  #     assert fired?     :event, 'channel'
-  #     refute fired?     :event
-  #     refute fired?     :event, self
-  #     assert fired?     :event, '*'
-  #     refute fired?     :event, 'channel2'
-  #   end
+    # it "can be used to match against the stored list" do
+    #   fire   :event, 'channel'
+    #   fired?(:event, 'channel') .should be
+    #   fired?(:event)            .should_not be
+    #   fired?(:event, self)      .should_not be
+    #   fired?(:event, 'channel2').should_not be
+    # end
     
-  #   it "matches event subclasses by default" do
-  #     fire SomeEvent
-  #     assert fired?  Wires::Event
-  #     assert fired?  SomeEvent
-  #     refute fired?  SomeOtherEvent
-  #     assert fired?  Wires::Event.new
-  #     assert fired?  SomeEvent.new
-  #     refute fired?  SomeOtherEvent.new
-  #   end
+    # it "matches event subclasses by default" do
+    #   fire SomeEvent
+    #   assert fired?  Wires::Event
+    #   assert fired?  SomeEvent
+    #   refute fired?  SomeOtherEvent
+    #   assert fired?  Wires::Event.new
+    #   assert fired?  SomeEvent.new
+    #   refute fired?  SomeOtherEvent.new
+    # end
     
   #   it "can match an exact event_type instead of including subclasses" do
   #     fire SomeEvent
@@ -331,4 +323,4 @@ end
   #   end
   # end
   
-# end
+end

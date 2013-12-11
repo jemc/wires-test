@@ -40,8 +40,8 @@ module Wires
         
         results = @AFFIX_wires_events.select { |e,c|
           c = Channel[c]
-          (exact_event   ? (key_event.event_type == e.event_type) : (key_event =~ e)) and
-          (exact_channel ? (key_chan  === c)                      : (key_chan  =~ c))
+          (exact_event   ? (key_event == e) : (key_event =~ e)) and
+          (exact_channel ? (key_chan  == c) : (key_chan  =~ c))
         }
         
         results.select! { |e,c| yield e,c } if block_given?

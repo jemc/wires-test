@@ -1,21 +1,4 @@
 
-# Save RSpec matcher list before the build_alt
-$pre_existing_matchers = RSpec::Matchers.instance_methods
-
-require 'wires'
-require 'wires/test'
-
-require 'spec_helper'
-
-$defined_matchers = RSpec::Matchers.instance_methods \
-                    - $pre_existing_matchers
-
-
-module UserModule
-  Wires::Util.build_alt "::#{self}::AltWires"
-  Wires::Test.build_alt "::#{self}::AltWires", affix:'alt'
-  AltWires.extend AltWires::Convenience
-end
 
 shared_examples "a module transformed by build_alt" do
   it "it gets its instance methods replaced" do
@@ -42,6 +25,42 @@ shared_examples "a module transformed by build_alt" do
   end
 end
 
+
+
+
+def all_matchers
+  RSpec::Matchers.instance_methods
+end
+
+def all_contexts
+  RSpec::Core::SharedExampleGroup
+    .shared_example_groups
+    .instance_variable_get(:@examples)
+    .values.map(&:keys)
+    .flatten
+end
+
+
+# Save RSpec matcher and shared example lists before the build_alt
+$pre_existing_matchers = all_matchers
+$pre_existing_contexts = all_contexts
+
+require 'wires'
+require 'wires/test'
+
+require 'spec_helper'
+
+$defined_matchers = all_matchers - $pre_existing_matchers
+$defined_contexts = all_contexts - $pre_existing_contexts
+
+
+
+module UserModule
+  Wires::Util.build_alt "::#{self}::AltWires"
+  Wires::Test.build_alt "::#{self}::AltWires", affix:'alt'
+  AltWires.extend AltWires::Convenience
+end
+
 describe Wires::Test do
   
   describe ".build_alt" do
@@ -64,28 +83,16 @@ describe Wires::Test do
     end
     
     it "copies and transforms the RSpec matchers that were defined" do
-      ary = RSpec::Matchers.instance_methods \
-            - $pre_existing_matchers \
-            - $defined_matchers
+      ary = all_matchers - $pre_existing_matchers - $defined_matchers
       ary = ary.map(&:to_s).map{|s| s.gsub /alt_/, ''}.map(&:to_sym)
       expect(ary).to match_array $defined_matchers
     end
     
-    describe ::RSpec::Matchers do
-      # binding.pry
+    it "copies and transforms the RSpec shared contexts that were defined" do
+      ary = all_contexts - $pre_existing_contexts - $defined_contexts
+      ary = ary.map(&:to_s).map{|s| s.gsub /alt_/, ''}.map(&:to_s)
+      expect(ary).to match_array $defined_contexts
     end
-    
-    
-#     it "can assign an affix to all defined methods of Helper" do
-#       [:clear_fired,  :fired?, 
-#        :assert_fired, :refute_fired].each do |x|
-#         UserModule::AltWires::Test::Helper.instance_methods.wont_include x
-#       end
-#       [:clear_alt_fired,  :alt_fired?, 
-#        :assert_alt_fired, :refute_alt_fired].each do |x|
-#         UserModule::AltWires::Test::Helper.instance_methods.must_include x
-#       end
-#     end
     
 #     describe "crosstalk" do
 #       include Wires::Convenience

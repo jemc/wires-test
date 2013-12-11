@@ -13,7 +13,7 @@ RSpec.configure do |c|
     c.run_all_when_everything_filtered = true
     
     # Abort after first failure
-    c.fail_fast = true
+    # c.fail_fast = true
   end
   
   # Set output formatter and enable color
