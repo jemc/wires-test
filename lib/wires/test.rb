@@ -117,10 +117,18 @@ shared_context "with AFFIX wires stimulus" do |event, **kwargs|
 end
 
 
-::RSpec::Matchers.define :have_AFFIX_fired do |event, channel=nil|
+::RSpec::Matchers.define :have_AFFIX_fired do |event, channel=:__no_channel_was_specified__|
   match do |_|
-    channel ||= subject
     AFFIX_fired? event, channel
+  end
+  failure_message_for_should do |*args, &blk|
+    "received: \n  #{actual_events.map(&:inspect).join("\n  ")}"
+  end
+  failure_message_for_should_not do |*args, &blk|
+    "received: \n  #{actual_events.map(&:inspect).join("\n  ")}"
+  end
+  def actual_events
+    matcher_execution_context.instance_variable_get :@AFFIX_wires_events
   end
 end
 
