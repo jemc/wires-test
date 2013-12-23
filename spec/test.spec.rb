@@ -123,8 +123,6 @@ end
 
 describe Wires::Test::Helper, wires:true do
   
-  include Wires::Convenience
-  
   it 'tracks all events fired in each test' do
     @wires_events.should eq []
     
