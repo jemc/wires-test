@@ -117,14 +117,17 @@ shared_context "with AFFIX wires stimulus" do |event, **kwargs|
 end
 
 
-::RSpec::Matchers.define :have_AFFIX_fired do |event, channel=:__no_channel_was_specified__, fulfilling:nil|
+::RSpec::Matchers.define :have_AFFIX_fired do
   match do |_|
-    AFFIX_fired? event, channel, &fulfilling
+    *args, fulfilling = process_expected(*expected)
+    AFFIX_fired? *args, &fulfilling
   end
   
   description do
+    event, channel, _ = process_expected(*expected)
+    
     str = "have fired #{event.inspect}"
-    str += " on #{channel.inspect}" unless channel==:__no_channel_was_specified__
+    str += " on #{channel.inspect}" if channel
     str
   end
   
@@ -139,6 +142,8 @@ end
   def actual_events
     matcher_execution_context.instance_variable_get :@AFFIX_wires_events
   end
+  
+  def process_expected(*args, fulfilling:nil); [*args, fulfilling] end
 end
 
 

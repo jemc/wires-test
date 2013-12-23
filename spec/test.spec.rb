@@ -103,7 +103,7 @@ describe TestObject, wires:true do
   end
   
   with_stimulus :reverse['rats'] do
-    it { should have_fired :message['star'], subject }
+    it { should_not have_fired :message['star'], 'other' }
   end
   
   context "with multiple wires context inclusions" do
