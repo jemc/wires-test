@@ -1,28 +1,25 @@
 
-# Encase all code in a HEREDOC string until the...
-<<'-END OF IMPLEMENTATION'
-
 module Wires
   module Test
     module Helper
       
-      attr_reader :AFFIX_wires_events
+      attr_reader :wires_events
       
-      def AFFIX_wires_test_setup
-        @AFFIX_wires_events = []
-        @AFFIX_wires_test_fire_hook = \
+      def wires_test_setup
+        @wires_events = []
+        @wires_test_fire_hook = \
         Channel.add_hook(:@before_fire) { |e,c| 
-          @AFFIX_wires_events << [e,c]
+          @wires_events << [e,c]
         }
       end
       
-      def AFFIX_wires_test_teardown
+      def wires_test_teardown
         Wires::Hub.join_children
-        @AFFIX_wires_events = nil
-        Channel.remove_hook(:@before_fire, &@AFFIX_wires_test_fire_hook)
+        @wires_events = nil
+        Channel.remove_hook(:@before_fire, &@wires_test_fire_hook)
       end
       
-      def AFFIX_fired?(event, channel=:__no_channel_was_specified__, 
+      def fired?(event, channel=:__no_channel_was_specified__, 
                  clear:false, exclusive:false, plurality:nil,
                  exact_event:false, exact_channel:false,
                  &block)
@@ -49,7 +46,7 @@ module Wires
                               "#{key_event.inspect}"
         end
         
-        results = @AFFIX_wires_events.select { |e,c|
+        results = @wires_events.select { |e,c|
           c = Channel[c]
           (exact_event   ? (key_event == e) : (key_event =~ e)) && (!key_chan ||
           (exact_channel ? (key_chan  == c) : (key_chan  =~ c)))
@@ -58,20 +55,20 @@ module Wires
         # If passed a block, use it to determine
         results.select! { |e,c| yield e,c } if block_given?
         
-        clear_AFFIX_fired if clear
+        clear_fired if clear
         
         return false if results.empty?
-        return false if exclusive and (@AFFIX_wires_events != results)
+        return false if exclusive and (@wires_events != results)
         return false if plurality and (results.size != plurality)
         
         true
       end
       
-      def clear_AFFIX_fired
-        @AFFIX_wires_events.clear
+      def clear_fired
+        @wires_events.clear
       end
       
-      def AFFIX_wires_test_channel_from_kwargs **kwargs
+      def wires_test_channel_from_kwargs **kwargs
         # Get channel_name from keyword arguments
         channel_name = \
           kwargs.has_key?(:channel_name) ?
@@ -90,7 +87,7 @@ module Wires
 end
 
 
-shared_context "with AFFIX wires", :AFFIX_wires=>true do
+shared_context "with wires", :wires=>true do
   unless ancestors.include? Wires::Convenience
     include Wires::Convenience
   end
@@ -98,29 +95,29 @@ shared_context "with AFFIX wires", :AFFIX_wires=>true do
   unless ancestors.include? Wires::Test::Helper
     include Wires::Test::Helper
     around do |example|
-      AFFIX_wires_test_setup
+      wires_test_setup
       example.run
-      AFFIX_wires_test_teardown
+      wires_test_teardown
     end
   end
   
   extend Wires::Test::RSpec::ExampleGroupMethods
 end
 
-shared_context "with AFFIX wires stimulus" do |event, **kwargs|
-  include_context "with AFFIX wires"
+shared_context "with wires stimulus" do |event, **kwargs|
+  include_context "with wires"
   
   before do
-    channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
+    channel_obj = wires_test_channel_from_kwargs **kwargs
     channel_obj.fire event, blocking:true
   end
 end
 
 
-::RSpec::Matchers.define :have_AFFIX_fired do
+::RSpec::Matchers.define :have_fired do
   match do |_|
     *args, fulfilling = process_expected(*expected)
-    AFFIX_fired? *args, &fulfilling
+    fired? *args, &fulfilling
   end
   
   description do
@@ -140,7 +137,7 @@ end
   end
   
   def actual_events
-    matcher_execution_context.instance_variable_get :@AFFIX_wires_events
+    matcher_execution_context.instance_variable_get :@wires_events
   end
   
   def process_expected(*args, fulfilling:nil); [*args, fulfilling] end
@@ -152,62 +149,32 @@ module Wires
     module RSpec
       module ExampleGroupMethods
       
-        def with_AFFIX_stimulus(event, **kwargs, &block)
-          context "(with AFFIX stimulus #{event.inspect})" do
-            include_context "with AFFIX wires stimulus", event, **kwargs
+        def with_stimulus(event, **kwargs, &block)
+          context "(with stimulus #{event.inspect})" do
+            include_context "with wires stimulus", event, **kwargs
             instance_eval &block
           end
         end
         
-        def it_AFFIX_fires(event, **kwargs, &block)
+        def it_fires(event, **kwargs, &block)
           context "fires #{event.inspect}" do
             specify do
-              channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
-              should have_AFFIX_fired event, channel_obj, fulfilling:block
+              channel_obj = wires_test_channel_from_kwargs **kwargs
+              should have_fired event, channel_obj, fulfilling:block
             end
           end
         end
         
-        def it_AFFIX_fires_no(event, **kwargs, &block)
+        def it_fires_no(event, **kwargs, &block)
           context "fires no #{event.inspect}" do
             specify do
-              channel_obj = AFFIX_wires_test_channel_from_kwargs **kwargs
-              should_not have_AFFIX_fired event, channel_obj, fulfilling:block
+              channel_obj = wires_test_channel_from_kwargs **kwargs
+              should_not have_fired event, channel_obj, fulfilling:block
             end
           end
         end
         
       end
-    end
-  end
-end
-
--END OF IMPLEMENTATION
-.gsub(/AFFIX[_ ]/, "")    # Remove all AFFIX markers (see Wires::Test.build_alt)
-.tap { |code| eval code } # Eval the cleaned code in 
-
-
-
-module Wires
-  module Test
-    # Build an alternate version of Test for an alternate Wires module
-    # Optionally, specify an affix to be used in method names;
-    # This helps to differentiate from the original Helper
-    def self.build_alt(wires_module_path, affix:nil)
-      affix = affix ? affix.to_s+'_' : ''
-      
-      [__FILE__] # List of files to mutate and eval
-        .map  { |file| File.read file }
-        .each do |code|
-          
-          code =~ /(?<='-END OF IMPLEMENTATION').*?(?=-END OF IMPLEMENTATION)/m
-          code = $&
-
-          code.gsub! /Wires/, "#{wires_module_path}"
-          code.gsub! /AFFIX[_ ]/, affix
-          
-          eval code
-        end
     end
   end
 end
