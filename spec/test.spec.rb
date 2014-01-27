@@ -128,6 +128,11 @@ describe TestObject, wires:true do
     executed.should eq 3
   end
   
+  it "will raise ArgumentError if where or fulfilling is not given a block" do
+    expect{should have_fired(:event).where}.to      raise_error ArgumentError
+    expect{should have_fired(:event).fulfilling}.to raise_error ArgumentError
+  end
+  
   it "can specify how many times to expect the message" do
     fire! :reverse['rats'], subject
     fire! :reverse['rats'], subject
