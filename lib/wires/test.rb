@@ -114,33 +114,56 @@ shared_context "with wires stimulus" do |event, **kwargs|
 end
 
 
-::RSpec::Matchers.define :have_fired do
-  match do |_|
-    *args, fulfilling = process_expected(*expected)
-    fired? *args, &fulfilling
+::RSpec::Matchers.define :have_fired do |*args|
+  def where(&block)
+    raise ArgumentError, "No block passed to #should have_fired(...).where; "\
+                         "be sure to use {} instead of do/end so that the "\
+                         "block binds syntactically to #where instead of "\
+                         "binding to #should." if block.nil?
+    @fulfilling_block = proc{|*args| block.call(*args); true}
+    self
+  end
+  
+  def fulfilling(&block)
+    raise ArgumentError, "No block passed to #should have_fired(...).fulfilling; "\
+                         "be sure to use {} instead of do/end so that the "\
+                         "block binds syntactically to #fulfilling instead of "\
+                         "binding to #should." if block.nil?
+    @fulfilling_block = block
+    self
+  end
+  
+  def once;      exactly(1).times;  self end
+  def twice;     exactly(2).times;  self end
+  def exactly(n) @plurality = n;    self end
+  def times; @use_plurality = true; self end
+  
+  match do
+    plur = @use_plurality ? @plurality : nil
+    fired? *args, plurality:plur, &@fulfilling_block
   end
   
   description do
-    event, channel, _ = process_expected(*expected)
+    event, channel, *rest = args
     
     str = "have fired #{event.inspect}"
     str += " on #{channel.inspect}" if channel
     str
   end
   
-  failure_message_for_should do |*args, &blk|
+  failure_message_for_should do
+    "expected to #{description}\n"+
     "received: \n  #{actual_events.map(&:inspect).join("\n  ")}"
   end
   
-  failure_message_for_should_not do |*args, &blk|
+  failure_message_for_should_not do
+    "expected not to #{description}\n"+
     "received: \n  #{actual_events.map(&:inspect).join("\n  ")}"
   end
   
   def actual_events
     matcher_execution_context.instance_variable_get :@wires_events
   end
-  
-  def process_expected(*args, fulfilling:nil); [*args, fulfilling] end
 end
 
 
@@ -160,7 +183,11 @@ module Wires
           context "fires #{event.inspect}" do
             specify do
               channel_obj = wires_test_channel_from_kwargs **kwargs
-              should have_fired event, channel_obj, fulfilling:block
+              if block.nil?
+                should have_fired(event, channel_obj)
+              else
+                should have_fired(event, channel_obj).fulfilling(&block)
+              end
             end
           end
         end
@@ -169,7 +196,11 @@ module Wires
           context "fires no #{event.inspect}" do
             specify do
               channel_obj = wires_test_channel_from_kwargs **kwargs
-              should_not have_fired event, channel_obj, fulfilling:block
+              if block.nil?
+                should_not have_fired(event, channel_obj)
+              else
+                should_not have_fired(event, channel_obj).fulfilling(&block)
+              end
             end
           end
         end

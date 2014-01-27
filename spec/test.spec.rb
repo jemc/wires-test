@@ -95,15 +95,72 @@ describe TestObject, wires:true do
   end
   
   with_stimulus :reverse['rats'] do
-    it { should have_fired :message['star'] }
-  end
-  
-  with_stimulus :reverse['rats'] do
     it { should have_fired :message['star'], subject }
   end
   
   with_stimulus :reverse['rats'] do
     it { should_not have_fired :message['star'], 'other' }
+  end
+  
+  it "can execute the block given to where for each event found" do
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    executed = 0
+    should have_fired(:message['star']).where { |e|
+      e.args.first.should eq 'star'
+      executed += 1
+      nil
+    }
+    executed.should eq 3
+  end
+  
+  it "can use the block given to fulfilling to narrow the detection terms" do
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    executed = 0
+    should_not have_fired(:message['star']).fulfilling { |e|
+      e.args.first.should eq 'star'
+      executed += 1
+      nil
+    }
+    executed.should eq 3
+  end
+  
+  it "can specify how many times to expect the message" do
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    should have_fired(:message['star']).exactly(3).times
+  end
+  
+  it "can specify how many times not to expect the message" do
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    should_not have_fired(:message['star']).exactly(3).times
+  end
+  
+  it "expect the message just once" do
+    fire! :reverse['rats'], subject
+    should have_fired(:message['star']).once
+  end
+  
+  it "expect the message not once" do
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    should_not have_fired(:message['star']).once
+  end
+  
+  it "expect the message just twice" do
+    fire! :reverse['rats'], subject
+    fire! :reverse['rats'], subject
+    should have_fired(:message['star']).twice
+  end
+  
+  it "expect the message not twice" do
+    fire! :reverse['rats'], subject
+    should_not have_fired(:message['star']).twice
   end
   
   context "with multiple wires context inclusions" do
